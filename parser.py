@@ -1,31 +1,28 @@
 import feedparser
 
-def get_cnn_top_stories():
-    # Aqui vai depois os links
-    feed_url = "http://rss.cnn.com/rss/cnn_topstories.rss"
+def get_tech_news():
+    """
+    Fetches the latest tech news from TabNews RSS feed.
+    Returns a list of dictionaries with title, url, and source.
+    """
+    feed_url = "https://www.tabnews.com.br/recentes/rss"
     feed = feedparser.parse(feed_url)
 
-    opportunities = []
-    for entry in feed.entries:
-        opportunities.append({
+    news_list = []
+    
+    # Let's get the top 5 entries to keep it clean for now
+    for entry in feed.entries[:5]:
+        news_list.append({
             "title": entry.title,
             "url": entry.link,
-            "description": entry.summary,
-                        "source": "CNN"  
-                    })
-    return opportunities
-
-def limpar_dados(noticia):
-    # Pacote com os nomes
-    dados_limpos = {
-        "titulo": noticia.title,
-        "link": noticia.link,
-        "descricao": noticia.summary
-    }
-    return dados_limpos
-    primeira_noticia_limpa - limpar_dados(noticias[0])
-    print(f"Link da oportunidade {primeira_noticia_limpa['link']}")
+            "source": "TabNews"
+        })
+    
+    return news_list
 
 if __name__ == "__main__":
-    stories = get_cnn_top_stories()
-    print(stories)
+    # Test the parser when running this file directly
+    print("Fetching news from TabNews...")
+    news = get_tech_news()
+    for item in news:
+        print(f"- {item['title']} ({item['url']})")
