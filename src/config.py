@@ -1,0 +1,41 @@
+import os
+import requests
+from google import genai
+
+# --- APP CONFIGURATION INTERFACE ---
+
+# Flag to toggle between Standard Hierarchy and Dynamic Selection
+LIST_ALL_AVAILABLE_MODELS = True 
+
+def fetch_available_google_models():
+    """Fetches all accessible models from Google Gemini API."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key: return []
+    try:
+        # Using the new genai client to list models
+        client = genai.Client(api_key=api_key)
+        models = client.models.list()
+        # Return only names that are usable for content generation
+        return [m.name.replace("models/", "") for m in models if "generateContent" in m.supported_generation_methods]
+    except Exception as e:
+        print(f"Error fetching Google models: {e}")
+        return []
+
+def fetch_available_openrouter_models():
+    """Fetches all available models from OpenRouter API."""
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key: return []
+    try:
+        response = requests.get("https://openrouter.ai/api/v1/models", 
+                               headers={"Authorization": f"Bearer {api_key}"})
+        if response.status_code == 200:
+            data = response.json()
+            return [m["id"] for m in data.get("data", [])]
+        return []
+    except Exception as e:
+        print(f"Error fetching OpenRouter models: {e}")
+        return []
+
+# Default models (used if dynamic selection isn't performed)
+GOOGLE_DEFAULT_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"]
+OPENROUTER_DEFAULT_MODEL = "google/gemma-3-4b-it:free"

@@ -1,4 +1,10 @@
-supabase
-python-dotenv
-feedparser
 python-telegram-bot
+requests
+beautifulsoup4
+lxml
+feedparser
+python-dotenv
+google-generativeai
+schedule
+pytest
+openai
