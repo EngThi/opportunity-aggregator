@@ -1,38 +1,64 @@
-import schedule
-import time
+import sys
 import os
-from src import database, notifier
-from src.sources import devpost, mlh, tabnews, github_jobs
 from dotenv import load_dotenv
+
+# Adiciona o diretório src ao path para importações
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+
+from sources.mlh import fetch_mlh
+from sources.tabnews import fetch_tabnews
+from scorer import AIScorer
+from database import save_opportunity, init_db
 
 load_dotenv()
 
-def job():
-    print("🚀 Iniciando tarefa diária de sincronização...")
+def run_aggregator():
+    print("🚀 Iniciando Opportunity Aggregator Inteligente...")
+    init_db()
     
-    all_opps = []
-    all_opps.extend(devpost.fetch_devpost())
-    all_opps.extend(mlh.fetch_mlh())
-    all_opps.extend(tabnews.fetch_tabnews())
-    all_opps.extend(github_jobs.fetch_github_jobs())
+    # 1. Coleta de dados
+    all_opportunities = []
     
-    saved_count = database.save_opportunity(all_opps)
-    print(f"✅ Sincronização concluída. {saved_count} novas oportunidades salvas.")
+    print("📡 Coletando do MLH...")
+    all_opportunities.extend(fetch_mlh())
     
-    # Notificar um chat_id padrão se configurado (opcional)
-    admin_chat_id = os.environ.get("ADMIN_CHAT_ID")
-    if admin_chat_id:
-        today_opps = database.get_today_opportunities()
-        notifier.send_telegram_digest(admin_chat_id, today_opps)
+    print("📡 Coletando do TabNews...")
+    all_opportunities.extend(fetch_tabnews())
+    
+    # Devpost placeholder (implementação futura ou fallback)
+    # print("📡 Coletando do Devpost...")
+    # all_opportunities.extend(fetch_devpost())
+
+    print(f"✅ Total de {len(all_opportunities)} oportunidades encontradas.")
+
+    # 2. Pontuação por IA
+    print("🧠 Iniciando pontuação inteligente com Gemini...")
+    scorer = AIScorer()
+    scored_opportunities = []
+    
+    for opp in all_opportunities:
+        print(f"   🧐 Avaliando: {opp['title'][:50]}...")
+        score, rationale = scorer.score_opportunity(opp)
+        opp['score'] = score
+        opp['rationale'] = rationale
+        scored_opportunities.append(opp)
+
+    # 3. Salvamento no Banco
+    print("💾 Salvando no banco de dados...")
+    saved_count = save_opportunity(scored_opportunities)
+    print(f"✨ {saved_count} novas oportunidades salvas com sucesso!")
+
+    # 4. Sumário das melhores
+    top_matches = sorted(scored_opportunities, key=lambda x: x['score'], reverse=True)[:5]
+    
+    print("\n" + "="*50)
+    print("🏆 TOP 5 MATCHES DO DIA")
+    print("="*50)
+    for i, opp in enumerate(top_matches, 1):
+        print(f"{i}. [{opp['score']}%] {opp['title']}")
+        print(f"   🔗 {opp['url']}")
+        print(f"   💡 {opp['rationale']}\n")
+    print("="*50)
 
 if __name__ == "__main__":
-    # Executa uma vez ao iniciar
-    job()
-    
-    # Agenda para rodar todo dia às 09:00
-    schedule.every().day.at("09:00").do(job)
-    
-    print("⏳ Scheduler ativo. Rodando job diariamente às 09:00.")
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    run_aggregator()

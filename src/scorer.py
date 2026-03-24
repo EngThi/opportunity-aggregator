@@ -1,65 +1,83 @@
-from google import genai
-from openai import OpenAI
 import os
-import re
-from src import config
+import google.generativeai as genai
+from dotenv import load_dotenv
 
-def calculate_match_score(opportunity_desc, user_skills):
-    """
-    Calculates match score using a multi-tier fallback strategy:
-    Tier 1-3: Google Direct (3 -> 2.5 -> 2)
-    Tier 4: OpenRouter (Gemma Free)
-    """
-    gemini_key = config.get_gemini_key()
-    
-    # --- GOOGLE DIRECT TIERS ---
-    if gemini_key:
-        client = genai.Client(api_key=gemini_key)
-        for model_id in config.GOOGLE_DEFAULT_MODELS:
-            try:
-                prompt = f"Return ONLY a number (0-100) representing the job match for: Skills [{user_skills}] and Opportunity [{opportunity_desc}]"
-                
-                response = client.models.generate_content(
-                    model=model_id,
-                    contents=prompt
-                )
-                
-                match = re.search(r'\d+', response.text)
-                if match:
-                    print(f"✅ Success using Google Direct: {model_id}")
-                    return int(match.group())
-            except Exception as e:
-                print(f"⚠️ Tier failed ({model_id}): {str(e)[:50]}...")
-                continue # Try next model in sequence
+load_dotenv()
 
-    # --- OPENROUTER FALLBACK TIER ---
-    or_key = config.get_openrouter_key()
-    if or_key:
+class AIScorer:
+    def __init__(self, model_name="gemini-3.1-flash-lite-preview"):
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        if self.api_key:
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel(model_name)
+        else:
+            self.model = None
+            print("⚠️ GEMINI_API_KEY not found. Scoring will use fallback logic.")
+
+        self.user_profile = self._load_profile()
+
+    def _load_profile(self):
         try:
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=or_key,
-            )
-            
-            model_name = config.OPENROUTER_DEFAULT_MODEL
-            prompt = f"Score match 0-100 between Skills: {user_skills} and Job: {opportunity_desc}. Return digits only."
-            
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "user", "content": prompt}],
-                extra_headers={
-                    "HTTP-Referer": "https://github.com/gemini-cli/opportunity-aggregator",
-                    "X-Title": "Opportunity Aggregator Bot",
-                }
-            )
-            
-            score_text = response.choices[0].message.content
-            match = re.search(r'\d+', score_text)
-            if match:
-                print(f"✅ Success using OpenRouter Fallback: {model_name}")
-                return int(match.group())
-        except Exception as e:
-            print(f"❌ Critical: OpenRouter fallback also failed: {e}")
+            with open("user_profile.md", "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            return "General developer interested in hackathons and coding."
 
-    # Final Default case
-    return 50
+    def score_opportunity(self, opportunity):
+        """
+        Takes an opportunity dict and returns (score, rationale).
+        """
+        if not self.model:
+            return self._fallback_score(opportunity)
+
+        prompt = f"""
+        Act as a career mentor. Match this opportunity to the user profile below.
+        
+        USER PROFILE:
+        {self.user_profile}
+        
+        OPPORTUNITY:
+        Title: {opportunity.get('title')}
+        Description: {opportunity.get('description')}
+        Source: {opportunity.get('source')}
+        
+        Return exactly a JSON in this format:
+        {{
+            "score": <int 0-100>,
+            "rationale": "<short explanation in Portuguese why it matches or not>"
+        }}
+        """
+        
+        try:
+            response = self.model.generate_content(prompt)
+            # Basic JSON extraction from AI response
+            text = response.text.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            import json
+            result = json.loads(text)
+            return result.get("score", 0), result.get("rationale", "N/A")
+        except Exception as e:
+            print(f"❌ Error in AI scoring: {e}")
+            return self._fallback_score(opportunity)
+
+    def _fallback_score(self, opportunity):
+        # Basic keyword matching as fallback
+        keywords = ["python", "hackathon", "fellowship", "ai", "automation"]
+        score = 0
+        content = (opportunity.get('title', '') + ' ' + opportunity.get('description', '')).lower()
+        for kw in keywords:
+            if kw in content:
+                score += 20
+        return min(score, 100), "Match básico de palavras-chave (Fallback)."
+
+if __name__ == "__main__":
+    # Test Scorer
+    scorer = AIScorer()
+    mock_opp = {
+        "title": "MLH Global Hack Week: Python",
+        "description": "A week-long hackathon focused on backend development and automation using Python.",
+        "source": "MLH"
+    }
+    score, rationale = scorer.score_opportunity(mock_opp)
+    print(f"Score: {score} | Rationale: {rationale}")

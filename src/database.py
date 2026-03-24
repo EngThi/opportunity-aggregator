@@ -14,9 +14,18 @@ def init_db():
             description TEXT,
             source TEXT,
             type TEXT,
+            score INTEGER DEFAULT 0,
+            rationale TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    # Adiciona colunas se não existirem (para migração simples)
+    try:
+        cursor.execute("ALTER TABLE opportunities ADD COLUMN score INTEGER DEFAULT 0")
+        cursor.execute("ALTER TABLE opportunities ADD COLUMN rationale TEXT")
+    except sqlite3.OperationalError:
+        pass # Colunas já existem
+        
     conn.commit()
     conn.close()
 
@@ -28,12 +37,21 @@ def save_opportunity(data):
     for item in data:
         try:
             cursor.execute('''
-                INSERT INTO opportunities (title, url, description, source, type)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (item['title'], item['url'], item['description'], item['source'], item['type']))
+                INSERT INTO opportunities (title, url, description, source, type, score, rationale)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                item.get('title'), 
+                item.get('url'), 
+                item.get('description'), 
+                item.get('source'), 
+                item.get('type'),
+                item.get('score', 0),
+                item.get('rationale', '')
+            ))
             saved += 1
         except sqlite3.IntegrityError:
-            continue # Duplicado
+            # Se já existe, opcionalmente podemos atualizar o score/rationale se for maior
+            continue
     conn.commit()
     conn.close()
     return saved

@@ -16,3 +16,20 @@ __pycache__/
 
 # OS files
 .DS_Store
+
+# --- NOVAS REGRAS DE ORGANIZAÇÃO ---
+
+# Ferramentas externas e testes
+TESTES/
+test.sh
+
+# Arquivos Legacy (Refatoração src/)
+*_legacy.py
+
+# Editor e IDEs
+.vscode/
+.idea/
+
+# Perfil do Usuário (Pessoal)
+user_profile.md
+!user_profile.md.example

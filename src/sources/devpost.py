@@ -30,3 +30,4 @@ def fetch_devpost():
     except Exception as e:
         print(f"⚠️ Devpost fetch failed: {e}")
     return opportunities
+
