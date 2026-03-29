@@ -43,5 +43,5 @@ def fetch_available_openrouter_models():
         return []
 
 # Default models (used if dynamic selection isn't performed)
-GOOGLE_DEFAULT_MODELS = ["gemini-3-flash-preview", "gemini-2.0-flash", "gemini-1.5-flash"]
+GOOGLE_DEFAULT_MODELS = ["gemini-3-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-1.5-flash"]
 OPENROUTER_DEFAULT_MODEL = "google/gemma-3-4b-it:free"

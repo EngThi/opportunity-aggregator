@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from sources.mlh import fetch_mlh
 from sources.tabnews import fetch_tabnews
+from sources.devpost import fetch_devpost
 from scorer import AIScorer
 from database import save_opportunity, init_db
 
@@ -25,9 +26,8 @@ def run_aggregator():
     print("📡 Coletando do TabNews...")
     all_opportunities.extend(fetch_tabnews())
     
-    # Devpost placeholder (implementação futura ou fallback)
-    # print("📡 Coletando do Devpost...")
-    # all_opportunities.extend(fetch_devpost())
+    print("📡 Coletando do Devpost...")
+    all_opportunities.extend(fetch_devpost())
 
     print(f"✅ Total de {len(all_opportunities)} oportunidades encontradas.")
 
@@ -36,7 +36,8 @@ def run_aggregator():
     scorer = AIScorer()
     scored_opportunities = []
     
-    for opp in all_opportunities:
+    # Limit score to avoid rate limit in tests, but process enough to be useful
+    for opp in all_opportunities[:20]:
         print(f"   🧐 Avaliando: {opp['title'][:50]}...")
         score, rationale = scorer.score_opportunity(opp)
         opp['score'] = score
@@ -58,6 +59,13 @@ def run_aggregator():
         print(f"{i}. [{opp['score']}%] {opp['title']}")
         print(f"   🔗 {opp['url']}")
         print(f"   💡 {opp['rationale']}\n")
+    
+    # 5. Estratégia do Dia
+    print("="*50)
+    print("🎯 ESTRATÉGIA RECOMENDADA")
+    print("="*50)
+    strategy = scorer.generate_daily_strategy(scored_opportunities)
+    print(strategy)
     print("="*50)
 
 if __name__ == "__main__":

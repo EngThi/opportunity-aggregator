@@ -1,7 +1,12 @@
 import requests
+import re
 from datetime import datetime
 
 DEVPOST_API = "https://devpost.com/api/hackathons"
+
+def clean_html(text):
+    if not text: return ""
+    return re.sub(r'<[^>]*>', '', text)
 
 def fetch_devpost():
     """
@@ -17,10 +22,11 @@ def fetch_devpost():
         if response.status_code == 200:
             data = response.json()
             for item in data.get("hackathons", [])[:20]:
+                prize = clean_html(item.get('prize_amount', 'N/A'))
                 opportunities.append({
                     "title": item.get("title", "No title"),
                     "url": item.get("url", ""),
-                    "description": f"Prize: {item.get('prize_amount', 'N/A')} | {item.get('time_left_to_submission', '')}",
+                    "description": f"Prize: {prize} | {item.get('time_left_to_submission', '')}",
                     "source": "Devpost",
                     "type": "Hackathon"
                 })

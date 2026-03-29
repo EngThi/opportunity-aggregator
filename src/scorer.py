@@ -71,6 +71,60 @@ class AIScorer:
                 score += 20
         return min(score, 100), "Match básico de palavras-chave (Fallback)."
 
+    def generate_daily_strategy(self, scored_opportunities):
+        """
+        Summarizes the best opportunities and suggests a strategic path.
+        """
+        if not self.model or not scored_opportunities:
+            return "Foco do dia: Explore as oportunidades listadas acima e priorize aquelas com maior score de match básico."
+
+        top_opps = sorted(scored_opportunities, key=lambda x: x['score'], reverse=True)[:10]
+        opps_summary = "\n".join([f"- {o['title']} (Score: {o['score']}%): {o['description']}" for o in top_opps])
+
+        prompt = f"""
+        As a career strategist for a developer with this profile:
+        {self.user_profile}
+        
+        Review these top opportunities found today:
+        {opps_summary}
+        
+        Write a 3-4 sentence "Strategic Recommendation" in Portuguese for the developer's day. 
+        Be encouraging, specific, and tell them exactly which one to prioritize and why.
+        """
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            return f"Estratégia do dia: Você tem {len(top_opps)} ótimos matches. Comece pelo que possui o maior score!"
+
+def calculate_match_score(text, skills):
+    """
+    Legacy function to support bot_legacy.py.
+    Calculates a simple match score based on skills presence in text.
+    """
+    if not skills:
+        return 0
+        
+    text_lower = text.lower()
+    # Handle comma separated skills
+    skills_list = [s.strip().lower() for s in skills.split(',') if s.strip()]
+    
+    if not skills_list:
+        return 0
+        
+    matches = 0
+    for skill in skills_list:
+        if skill in text_lower:
+            matches += 1
+            
+    # Simple scoring: percentage of skills found
+    if len(skills_list) > 0:
+        score = (matches / len(skills_list)) * 100
+        return int(min(score, 100))
+    
+    return 0
+
 if __name__ == "__main__":
     # Test Scorer
     scorer = AIScorer()
@@ -81,3 +135,4 @@ if __name__ == "__main__":
     }
     score, rationale = scorer.score_opportunity(mock_opp)
     print(f"Score: {score} | Rationale: {rationale}")
+
