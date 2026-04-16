@@ -77,6 +77,36 @@ async def opportunities_cmd(interaction: discord.Interaction):
     embed.set_footer(text="Use /opportunities anytime to refresh")
     await interaction.followup.send(embed=embed)
 
+@tree.command(name="analyze", description="Analisa uma oportunidade específica (cole o texto)")
+@app_commands.describe(text="O título ou descrição da oportunidade que você quer analisar")
+async def analyze_cmd(interaction: discord.Interaction, text: str):
+    await interaction.response.defer(thinking=True)
+    
+    try:
+        scorer = AIScorer()
+        # Mock de objeto para o scorer
+        mock_opp = {
+            "title": "Custom Analysis",
+            "description": text,
+            "source": "User Input"
+        }
+        
+        score, rationale = scorer.score_opportunity(mock_opp)
+        
+        embed = discord.Embed(
+            title="🧠 AI Match Analysis",
+            description=f"Analysis of: *{text[:100]}...*",
+            color=0xfca311 if score > 70 else 0xe5e5e5
+        )
+        
+        embed.add_field(name="Match Score", value=f"**{score}%**", inline=True)
+        embed.add_field(name="Verdict", value=rationale, inline=False)
+        embed.set_footer(text="Based on your user_profile.md")
+        
+        await interaction.followup.send(embed=embed)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Erro na análise: {e}")
+
 @client.event
 async def on_ready():
     if GUILD_ID:
