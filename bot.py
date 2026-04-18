@@ -16,25 +16,49 @@ from sources.devpost import fetch_devpost
 from scorer import AIScorer
 from database import save_opportunity, init_db
 
+# --- CONFIGURAÇÃO ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD_ID = os.getenv("DISCORD_GUILD_ID")  # opcional, acelera registro de comandos
+GUILD_ID = os.getenv("DISCORD_GUILD_ID")
 
-intents = discord.Intents.default()
-client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(client)
+class OpportunityBot(discord.Client):
+    def __init__(self):
+        intents = discord.Intents.default()
+        super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
+
+    async def setup_hook(self):
+        if GUILD_ID:
+            guild = discord.Object(id=int(GUILD_ID))
+            self.tree.copy_global_to(guild=guild)
+            await self.tree.sync(guild=guild)
+        else:
+            await self.tree.sync()
+
+client = OpportunityBot()
+
+def validate_env():
+    """Valida se as chaves essenciais estão presentes"""
+    required = ["DISCORD_TOKEN", "GEMINI_API_KEY"]
+    missing = [key for key in required if not os.getenv(key)]
+    if missing:
+        print(f"❌ Erro: Variáveis faltando no .env: {', '.join(missing)}")
+        return False
+    return True
 
 def fetch_top_opportunities_sync():
-    """Versão síncrona para ser rodada em thread separada"""
     all_opps = []
-    print("📡 Coletando oportunidades para o Discord...")
-    all_opps.extend(fetch_mlh())
-    all_opps.extend(fetch_tabnews())
-    all_opps.extend(fetch_devpost())
+    print("📡 Coletando oportunidades em background...")
+    try:
+        all_opps.extend(fetch_mlh())
+        all_opps.extend(fetch_tabnews())
+        all_opps.extend(fetch_devpost())
+    except Exception as e:
+        print(f"⚠️ Erro no scraping: {e}")
 
     scorer = AIScorer()
     scored = []
-    # Limite de 15 para evitar rate limit e ser rápido na resposta do comando
-    for opp in all_opps[:15]:
+    # Processa as 10 mais recentes para ser rápido
+    for opp in all_opps[:10]:
         score, rationale = scorer.score_opportunity(opp)
         opp["score"] = score
         opp["rationale"] = rationale
@@ -44,83 +68,54 @@ def fetch_top_opportunities_sync():
     save_opportunity(scored)
     return sorted(scored, key=lambda x: x["score"], reverse=True)[:5]
 
-@tree.command(name="opportunities", description="Top 5 oportunidades do dia (hackathons, grants, jobs)")
+@client.tree.command(name="opportunities", description="Top 5 oportunidades personalizadas via IA")
 async def opportunities_cmd(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
-
-    try:
-        # Executa a coleta em uma thread separada para não travar o bot
-        loop = asyncio.get_event_loop()
-        top = await loop.run_in_executor(None, fetch_top_opportunities_sync)
-    except Exception as e:
-        print(f"❌ Erro ao buscar oportunidades: {e}")
-        await interaction.followup.send("⚠️ Houve um erro ao processar as oportunidades. Tente novamente em breve.")
-        return
+    
+    loop = asyncio.get_event_loop()
+    top = await loop.run_in_executor(None, fetch_top_opportunities_sync)
 
     if not top:
-        await interaction.followup.send("⚠️ Nenhuma oportunidade encontrada agora. Tente novamente em breve.")
+        await interaction.followup.send("⚠️ Nenhuma oportunidade disponível no momento.")
         return
 
     embed = discord.Embed(
-        title="🏆 Top Opportunities Today",
-        description="Curated by AI · Powered by Opportunity Aggregator",
-        color=0x00b4d8
+        title="🚀 Top Opportunites for You",
+        description="I've analyzed the web and found these matches based on your profile.",
+        color=0x2ecc71 # Verde
     )
 
-    for i, opp in enumerate(top, 1):
+    for opp in top:
+        score_color = "🟢" if opp['score'] > 75 else "🟡" if opp['score'] > 50 else "🔴"
         embed.add_field(
-            name=f"{i}. [{opp['score']}%] {opp['title'][:60]}",
-            value=f"💡 {opp['rationale'][:150]}...\n🔗 [Link Directo]({opp['url']})",
+            name=f"{score_color} {opp['score']}% - {opp['title'][:50]}",
+            value=f"**Source:** {opp['source']}\n{opp['rationale'][:150]}...\n[View Link]({opp['url']})",
             inline=False
         )
-
-    embed.set_footer(text="Use /opportunities anytime to refresh")
+    
+    embed.set_footer(text="Opportunity Aggregator · Built for the bus commute 🚌")
     await interaction.followup.send(embed=embed)
 
-@tree.command(name="analyze", description="Analisa uma oportunidade específica (cole o texto)")
-@app_commands.describe(text="O título ou descrição da oportunidade que você quer analisar")
+@client.tree.command(name="analyze", description="Análise instantânea de qualquer texto de vaga")
 async def analyze_cmd(interaction: discord.Interaction, text: str):
     await interaction.response.defer(thinking=True)
     
-    try:
-        scorer = AIScorer()
-        # Mock de objeto para o scorer
-        mock_opp = {
-            "title": "Custom Analysis",
-            "description": text,
-            "source": "User Input"
-        }
-        
-        score, rationale = scorer.score_opportunity(mock_opp)
-        
-        embed = discord.Embed(
-            title="🧠 AI Match Analysis",
-            description=f"Analysis of: *{text[:100]}...*",
-            color=0xfca311 if score > 70 else 0xe5e5e5
-        )
-        
-        embed.add_field(name="Match Score", value=f"**{score}%**", inline=True)
-        embed.add_field(name="Verdict", value=rationale, inline=False)
-        embed.set_footer(text="Based on your user_profile.md")
-        
-        await interaction.followup.send(embed=embed)
-    except Exception as e:
-        await interaction.followup.send(f"❌ Erro na análise: {e}")
+    scorer = AIScorer()
+    mock_opp = {"title": "Custom Job", "description": text, "source": "Manual"}
+    score, rationale = scorer.score_opportunity(mock_opp)
+    
+    color = 0x2ecc71 if score > 75 else 0xf1c40f if score > 50 else 0xe74c3c
+    embed = discord.Embed(title="🧠 Match Analysis", color=color)
+    embed.add_field(name="Score", value=f"**{score}%**", inline=True)
+    embed.add_field(name="Veredito", value=rationale, inline=False)
+    
+    await interaction.followup.send(embed=embed)
 
 @client.event
 async def on_ready():
-    if GUILD_ID:
-        guild = discord.Object(id=int(GUILD_ID))
-        tree.copy_global_to(guild=guild)
-        await tree.sync(guild=guild)
-        print(f"✅ Bot online e comandos sincronizados para o servidor {GUILD_ID}")
-    else:
-        await tree.sync()
-        print(f"✅ Bot online e comandos sincronizados globalmente")
-    print(f"🤖 Conectado como {client.user}")
+    print(f"✅ Logado como {client.user} (ID: {client.user.id})")
+    await client.change_presence(activity=discord.Game(name="/opportunities"))
 
 if __name__ == "__main__":
-    if not DISCORD_TOKEN:
-        print("❌ Erro: DISCORD_TOKEN não encontrado no arquivo .env")
-    else:
+    if validate_env():
         client.run(DISCORD_TOKEN)
