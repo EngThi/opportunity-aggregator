@@ -7,7 +7,7 @@ import re
 load_dotenv()
 
 class AIScorer:
-    def __init__(self, model_name="gemini-3.1-flash-lite-preview"):
+    def __init__(self, model_name="gemini-1.5-flash"):
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
             genai.configure(api_key=self.api_key)

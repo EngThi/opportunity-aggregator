@@ -64,8 +64,11 @@ def run_aggregator():
     print("="*50)
     print("🎯 ESTRATÉGIA RECOMENDADA")
     print("="*50)
-    strategy = scorer.generate_daily_strategy(scored_opportunities)
-    print(strategy)
+    if hasattr(scorer, 'generate_daily_strategy'):
+        strategy = scorer.generate_daily_strategy(scored_opportunities)
+        print(strategy)
+    else:
+        print("💡 Foco nas oportunidades com score > 75%. Revise e aplique hoje!")
     print("="*50)
 
 if __name__ == "__main__":

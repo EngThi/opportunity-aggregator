@@ -12,11 +12,15 @@ def fetch_mlh():
         app_div = soup.find("div", id="app")
         if not app_div: return []
         data = json.loads(html.unescape(app_div["data-page"]))
-        events = data.get("props", {}).get("upcoming_events", [])
+
+        # MLH uses different keys sometimes like upcomingEvents or upcoming_events
+        props = data.get("props", {})
+        events = props.get("upcoming_events") or props.get("upcomingEvents") or []
+
         return [{
             "title": e.get("name"),
-            "url": e.get("website_url") or f"https://mlh.io{e.get('url')}",
-            "description": f"{e.get('date_range')} - {e.get('location')}",
+            "url": e.get("website_url") or f"https://mlh.io{e.get('url', '')}",
+            "description": f"{e.get('dateRange') or e.get('date_range')} - {e.get('location')}",
             "source": "MLH",
             "type": "Hackathon"
         } for e in events]

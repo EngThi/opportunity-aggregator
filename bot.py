@@ -72,8 +72,9 @@ def fetch_top_opportunities_sync():
 async def opportunities_cmd(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
     
-    loop = asyncio.get_event_loop()
-    top = await loop.run_in_executor(None, fetch_top_opportunities_sync)
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        top = await asyncio.get_event_loop().run_in_executor(pool, fetch_top_opportunities_sync)
 
     if not top:
         await interaction.followup.send("⚠️ Nenhuma oportunidade disponível no momento.")
