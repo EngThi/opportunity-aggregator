@@ -21,8 +21,8 @@ def fetch_available_google_models():
         # Using the new genai client to list models
         client = genai.Client(api_key=api_key)
         models = client.models.list()
-        # Return only names that are usable for content generation
-        return [m.name.replace("models/", "") for m in models if "generateContent" in m.supported_generation_methods]
+        # In the new SDK, we use 'supported_actions'
+        return [m.name.replace("models/", "") for m in models if m.supported_actions and "generateContent" in m.supported_actions]
     except Exception as e:
         print(f"Error fetching Google models: {e}")
         return []
@@ -43,5 +43,9 @@ def fetch_available_openrouter_models():
         return []
 
 # Default models (used if dynamic selection isn't performed)
-GOOGLE_DEFAULT_MODELS = ["gemini-3-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-1.5-flash"]
+GOOGLE_DEFAULT_MODELS = [
+    "gemini-3-flash-preview", 
+    "gemini-3.1-flash-lite-preview", 
+    "gemini-3.1-pro-preview"
+]
 OPENROUTER_DEFAULT_MODEL = "google/gemma-3-4b-it:free"

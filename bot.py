@@ -15,6 +15,7 @@ from sources.tabnews import fetch_tabnews
 from sources.devpost import fetch_devpost
 from scorer import AIScorer
 from database import save_opportunity, init_db
+import config
 
 # --- CONFIGURAÇÃO ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -31,8 +32,10 @@ class OpportunityBot(discord.Client):
             guild = discord.Object(id=int(GUILD_ID))
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)
+            print(f"✅ Commands synced to guild: {GUILD_ID}")
         else:
             await self.tree.sync()
+            print("✅ Commands synced globally")
 
 client = OpportunityBot()
 
@@ -94,6 +97,33 @@ async def opportunities_cmd(interaction: discord.Interaction):
         )
     
     embed.set_footer(text="Opportunity Aggregator · Built for the bus commute 🚌")
+    await interaction.followup.send(embed=embed)
+
+@client.tree.command(name="models", description="Check current AI model configuration and live availability")
+async def models_cmd(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    
+    # Executa a busca em threads para não travar o bot
+    loop = asyncio.get_event_loop()
+    google_models = await loop.run_in_executor(None, config.fetch_available_google_models)
+    or_models = await loop.run_in_executor(None, config.fetch_available_openrouter_models)
+    
+    embed = discord.Embed(
+        title="🤖 Real-time AI Models",
+        description="Available models detected for your API keys.",
+        color=0x3498db # Azul
+    )
+    
+    # Google Section
+    g_text = ", ".join(google_models[:8]) + (f" (+{len(google_models)-8})" if len(google_models)>8 else "") if google_models else "None found."
+    embed.add_field(name="📍 Google Gemini API", value=f"```{g_text}```", inline=False)
+    
+    # OpenRouter Section
+    free_or = [m for m in or_models if ":free" in m]
+    or_text = "🆓 **Free:** " + ", ".join(free_or[:3]) + "..." if free_or else "No free models."
+    embed.add_field(name="📍 OpenRouter API", value=or_text, inline=False)
+    
+    embed.set_footer(text="Manage defaults in src/config.py")
     await interaction.followup.send(embed=embed)
 
 @client.tree.command(name="analyze", description="Análise instantânea de qualquer texto de vaga")

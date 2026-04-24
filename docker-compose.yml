@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  opportunity-aggregator:
+    build: .
+    container_name: opportunity-bot
+    restart: always
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    volumes:
+      - ./opportunities.db:/app/opportunities.db
+      - ./user_profile.md:/app/user_profile.md
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
