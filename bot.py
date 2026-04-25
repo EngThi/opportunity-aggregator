@@ -13,6 +13,7 @@ load_dotenv()
 from sources.mlh import fetch_mlh
 from sources.tabnews import fetch_tabnews
 from sources.devpost import fetch_devpost
+from sources.hackclub import fetch_hackclub
 from scorer import AIScorer
 from database import save_opportunity, init_db, save_user_key
 import config
@@ -52,6 +53,7 @@ def fetch_top_opportunities_sync(user_id=None):
         all_opps.extend(fetch_mlh())
         all_opps.extend(fetch_tabnews())
         all_opps.extend(fetch_devpost())
+        all_opps.extend(fetch_hackclub())
     except Exception as e:
         print(f"⚠️ Erro no scraping: {e}")
 
@@ -83,6 +85,74 @@ async def opportunities_cmd(interaction: discord.Interaction):
         sc = "🟢" if opp['score'] > 75 else "🟡" if opp['score'] > 50 else "🔴"
         embed.add_field(name=f"{sc} {opp['score']}% - {opp['title'][:50]}", value=f"{opp['rationale'][:150]}...\n[Link]({opp['url']})", inline=False)
     
+    await interaction.followup.send(embed=embed)
+
+@client.tree.command(
+    name="hackclub",
+    description="🔥 Programas YSWS ativos + eventos do Hack Club (hardware, games, arte, código)"
+)
+async def hackclub_cmd(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+
+    loop = asyncio.get_event_loop()
+    items = await loop.run_in_executor(None, fetch_hackclub)
+
+    ysws = [i for i in items if i.get("type") == "ysws"][:6]
+    events = [i for i in items if i.get("type") == "event"][:3]
+
+    embed = discord.Embed(
+        title="🏴‍☠️ Hack Club — You Ship, We Ship",
+        description=(
+            "Build **qualquer coisa** — game, hardware, arte, PCB, API — "
+            "e o Hack Club te recompensa de verdade.\n"
+            "Sempre tem um programa ativo. **Sem desculpa pra não shipar.**"
+        ),
+        color=0xEC3750  # Red do Hack Club
+    )
+
+    if ysws:
+        embed.add_field(
+            name="🎯 Programas YSWS Ativos",
+            value="\u200b",
+            inline=False
+        )
+        for p in ysws:
+            desc = p["description"][:120]
+            embed.add_field(
+                name=p["title"],
+                value=f"{desc}...\n[→ Acessar]({p['url']})",
+                inline=True
+            )
+
+    if events:
+        event_list = []
+        for e in events:
+            line = f"• [{e['title'].replace('[HC Event] ','').replace('[HC AMA] ','')}]({e['url']})"
+            if e.get("cal"):
+                line += f" [📅]({e['cal']})"
+            if e.get("youtube"):
+                line += f" [▶️]({e['youtube']})"
+            event_list.append(line)
+            
+        embed.add_field(
+            name="📅 Próximos Eventos & AMAs",
+            value="\n".join(event_list),
+            inline=False
+        )
+
+    embed.add_field(
+        name="🔗 Links rápidos",
+        value=(
+            "[ysws.hackclub.com](https://ysws.hackclub.com) · "
+            "[events.hackclub.com](https://events.hackclub.com) · "
+            "[hackclub.com/slack](https://hackclub.com/slack)"
+        ),
+        inline=False
+    )
+
+    embed.set_footer(text="Hack Club · nonprofit for teen hackers · #ship no Slack")
+    embed.set_thumbnail(url="https://assets.hackclub.com/icon-rounded.png")
+
     await interaction.followup.send(embed=embed)
 
 @client.tree.command(name="config_gemini", description="Configure sua própria Gemini API Key (Privado)")
