@@ -2,6 +2,7 @@ import requests
 import os
 
 def send_telegram_digest(chat_id, opportunities):
+    """(Legacy) Envia resumo via Telegram"""
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     if not token or not opportunities: return
     
@@ -19,3 +20,34 @@ def send_telegram_digest(chat_id, opportunities):
         "disable_web_page_preview": True
     }
     requests.post(url, json=payload)
+
+def send_proactive_alert(opportunity):
+    """
+    Envia um alerta de elite (Score > 90%) para o Discord via Webhook.
+    """
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        print("⚠️ Alerta proativo ignorado: DISCORD_WEBHOOK_URL não configurado.")
+        return
+
+    color = 0x2ecc71 # Verde para elite
+    payload = {
+        "embeds": [{
+            "title": f"🚨 ELITE OPPORTUNITY FOUND! ({opportunity['score']}%)",
+            "description": f"**{opportunity['title']}**\n\n{opportunity['rationale']}",
+            "url": opportunity['url'],
+            "color": color,
+            "fields": [
+                {"name": "Fonte", "value": opportunity['source'], "inline": True},
+                {"name": "Tipo", "value": opportunity.get('type', 'Hackathon'), "inline": True}
+            ],
+            "footer": {"text": "Sent by Proactive Radar 🛰️"}
+        }]
+    }
+    
+    try:
+        response = requests.post(webhook_url, json=payload)
+        if response.status_code == 204:
+            print(f"📡 Alerta enviado com sucesso para o Discord: {opportunity['title']}")
+    except Exception as e:
+        print(f"❌ Erro ao enviar Webhook: {e}")

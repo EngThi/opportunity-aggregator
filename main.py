@@ -68,5 +68,11 @@ def run_aggregator():
     print(strategy)
     print("="*50)
 
+    # 6. Alertas Proativos (Radar Elite)
+    print("📡 Verificando oportunidades de elite para alertas...")
+    for opp in scored_opportunities:
+        if opp.get('score', 0) >= 90:
+            notifier.send_proactive_alert(opp)
+
 if __name__ == "__main__":
     run_aggregator()
