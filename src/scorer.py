@@ -11,93 +11,95 @@ load_dotenv()
 class AIScorer:
     def __init__(self, user_id=None):
         self.user_id = user_id
-        # Busca chaves customizadas do usuário
         user_keys = database.get_user_keys(user_id) if user_id else {}
-        
-        # Prioridade: Chave do Usuário > Chave do .env
         self.gemini_key = user_keys.get("gemini_key") or config.get_gemini_key()
         self.or_key = user_keys.get("openrouter_key") or config.get_openrouter_key()
+        self.custom_profile = user_keys.get("profile_md")
+        self.preferred_model = user_keys.get("preferred_model")
+
+    def _get_system_prompt(self):
+        return """
+        You are an elite career mentor and technical strategist. 
+        Match opportunities against the user's Markdown profile.
         
+        RULES:
+        1. Accuracy: Be critical. 
+        2. Format: Return valid JSON object.
+        3. Language: Respond in the SAME LANGUAGE as the provided User Profile.
+        4. Structure: {"score": <int>, "rationale": "<brief explanation>"}
+        """
+
     def _load_profile(self):
-        """Lê o perfil do usuário (Hot-reload)"""
+        if self.custom_profile: return self.custom_profile
         try:
-            with open("user_profile.md", "r", encoding="utf-8") as f:
-                return f.read()
-        except FileNotFoundError:
-            return "General developer interested in hackathons and coding."
+            with open("user_profile.md", "r", encoding="utf-8") as f: return f.read()
+        except: return "Developer interested in AI, Hackathons and Automation."
 
     def score_opportunity(self, opportunity):
-        """
-        Tier 1-3: Google Direct (User Key priority)
-        Tier 4: OpenRouter (User Key priority)
-        """
         user_profile = self._load_profile()
+        system_prompt = self._get_system_prompt()
+        user_content = f"USER PROFILE:\n{user_profile}\n\nOPPORTUNITY:\n{opportunity.get('title')} - {opportunity.get('description')}"
         
-        # --- GOOGLE DIRECT TIERS ---
+        # --- USER PREFERRED MODEL & PROVIDER ---
+        if self.preferred_model and ":" in self.preferred_model:
+            provider, model_id = self.preferred_model.split(":", 1)
+            
+            # Case OpenRouter
+            if provider == "openrouter" and self.or_key:
+                try:
+                    client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.or_key)
+                    response = client.chat.completions.create(
+                        model=model_id,
+                        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_content}]
+                    )
+                    text = response.choices[0].message.content.strip()
+                    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+                    result = json.loads(text)
+                    return result.get("score", 0), f"(Model: {model_id}) {result.get('rationale', 'N/A')}"
+                except: pass
+            
+            # Case Gemini
+            elif provider == "gemini" and self.gemini_key:
+                try:
+                    client = genai.Client(api_key=self.gemini_key)
+                    response = client.models.generate_content(model=model_id, config={'system_instruction': system_prompt}, contents=user_content)
+                    text = response.text.strip()
+                    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+                    result = json.loads(text)
+                    return result.get("score", 0), f"(Model: {model_id}) {result.get('rationale', 'N/A')}"
+                except: pass
+
+        # --- DEFAULT HIERARCHY (Fallback) ---
         if self.gemini_key:
             try:
                 client = genai.Client(api_key=self.gemini_key)
                 for model_id in config.GOOGLE_DEFAULT_MODELS:
                     try:
-                        prompt = f"Match this opportunity to the user profile. USER PROFILE: {user_profile} OPPORTUNITY: {opportunity.get('title')} - {opportunity.get('description')}. Return exactly JSON: {{\"score\": <int 0-100>, \"rationale\": \"<short explanation in Portuguese>\"}}"
-                        
-                        response = client.models.generate_content(model=model_id, contents=prompt)
+                        response = client.models.generate_content(model=model_id, config={'system_instruction': system_prompt}, contents=user_content)
                         text = response.text.strip()
-                        if "```json" in text:
-                            text = text.split("```json")[1].split("```")[0].strip()
-                        
+                        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
                         result = json.loads(text)
                         return result.get("score", 0), result.get("rationale", "N/A")
-                    except:
-                        continue
-            except:
-                pass
+                    except: continue
+            except: pass
 
-        # --- OPENROUTER FALLBACK TIER ---
-        if self.or_key:
-            try:
-                client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.or_key)
-                model_name = config.OPENROUTER_DEFAULT_MODEL
-                prompt = f"Score match 0-100 between Profile: {user_profile} and Job: {opportunity.get('title')}. Return JSON with 'score' and 'rationale' (in Portuguese)."
-                
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                
-                text = response.choices[0].message.content.strip()
-                if "```json" in text:
-                    text = text.split("```json")[1].split("```")[0].strip()
-                
-                result = json.loads(text)
-                return result.get("score", 0), result.get("rationale", "N/A")
-            except Exception as e:
-                print(f"❌ Scorer error: {e}")
-
-        return self._fallback_score(opportunity)
-
-    def _fallback_score(self, opportunity):
-        keywords = ["python", "hackathon", "fellowship", "ai", "automation"]
-        score = 0
-        content = (opportunity.get('title', '') + ' ' + opportunity.get('description', '')).lower()
-        for kw in keywords:
-            if kw in content:
-                score += 20
-        return min(score, 100), "Match básico de palavras-chave (Fallback)."
+        return 50, "Fallback scoring used."
 
     def generate_daily_strategy(self, scored_opportunities):
-        if not self.gemini_key or not scored_opportunities:
-            return "Foco do dia: Explore as oportunidades listadas acima e priorize aquelas com maior score."
-
         user_profile = self._load_profile()
         top_opps = sorted(scored_opportunities, key=lambda x: x['score'], reverse=True)[:5]
         opps_summary = "\n".join([f"- {o['title']} (Score: {o['score']}%): {o['description'][:100]}" for o in top_opps])
-
-        prompt = f"Act as a career strategist for this user: {user_profile}. Review these top opportunities: {opps_summary}. Write a 3-4 sentence 'Strategic Recommendation' in Portuguese."
         
-        try:
-            client = genai.Client(api_key=self.gemini_key)
-            response = client.models.generate_content(model=config.GOOGLE_DEFAULT_MODELS[0], contents=prompt)
-            return response.text.strip()
-        except:
-            return "Estratégia do dia: Você tem ótimos matches hoje. Foque no que possui o maior score!"
+        system_prompt = "You are a strategic career advisor. Suggest a path in the same language as the user profile."
+        user_content = f"PROFILE:\n{user_profile}\n\nOPPS:\n{opps_summary}\n\nWrite a 3-sentence strategy."
+
+        # Use preferred or first default
+        model_id = self.preferred_model if self.preferred_model and "gemini" in self.preferred_model else config.GOOGLE_DEFAULT_MODELS[0]
+
+        if self.gemini_key:
+            try:
+                client = genai.Client(api_key=self.gemini_key)
+                response = client.models.generate_content(model=model_id, config={'system_instruction': system_prompt}, contents=user_content)
+                return response.text.strip()
+            except: pass
+        return "Focus on the highest score opportunities today."

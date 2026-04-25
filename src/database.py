@@ -36,9 +36,35 @@ def init_user_db():
         CREATE TABLE IF NOT EXISTS user_settings (
             user_id TEXT PRIMARY KEY,
             gemini_key TEXT,
-            openrouter_key TEXT
+            openrouter_key TEXT,
+            profile_md TEXT,
+            preferred_model TEXT
         )
     ''')
+    # Migration: Ensure new columns exist
+    try:
+        cursor.execute("ALTER TABLE user_settings ADD COLUMN profile_md TEXT")
+    except sqlite3.OperationalError: pass
+    try:
+        cursor.execute("ALTER TABLE user_settings ADD COLUMN preferred_model TEXT")
+    except sqlite3.OperationalError: pass
+    
+    conn.commit()
+    conn.close()
+
+def save_user_model(user_id, model_name):
+    init_user_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO user_settings (user_id, preferred_model) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET preferred_model=?", (str(user_id), model_name, model_name))
+    conn.commit()
+    conn.close()
+
+def save_user_profile(user_id, profile_md):
+    init_user_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO user_settings (user_id, profile_md) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET profile_md=?", (str(user_id), profile_md, profile_md))
     conn.commit()
     conn.close()
 
@@ -59,10 +85,30 @@ def get_user_keys(user_id):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT gemini_key, openrouter_key FROM user_settings WHERE user_id = ?", (str(user_id),))
+    cursor.execute("SELECT gemini_key, openrouter_key, profile_md FROM user_settings WHERE user_id = ?", (str(user_id),))
     row = cursor.fetchone()
     conn.close()
     return dict(row) if row else {}
+
+def clear_user_setting(user_id, setting):
+    """Deleta uma configuração específica do usuário ou tudo"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    user_id = str(user_id)
+    
+    if setting == "gemini":
+        cursor.execute("UPDATE user_settings SET gemini_key = NULL WHERE user_id = ?", (user_id,))
+    elif setting == "openrouter":
+        cursor.execute("UPDATE user_settings SET openrouter_key = NULL WHERE user_id = ?", (user_id,))
+    elif setting == "profile":
+        cursor.execute("UPDATE user_settings SET profile_md = NULL WHERE user_id = ?", (user_id,))
+    elif setting == "model":
+        cursor.execute("UPDATE user_settings SET preferred_model = NULL WHERE user_id = ?", (user_id,))
+    elif setting == "all":
+        cursor.execute("DELETE FROM user_settings WHERE user_id = ?", (user_id,))
+        
+    conn.commit()
+    conn.close()
 
 def save_opportunity(data):
     if not isinstance(data, list): data = [data]

@@ -1,69 +1,76 @@
-# Opportunity Aggregator
+# Opportunity Aggregator 🚀
 
-An intelligent automation engine designed to centralize, analyze, and rank academic and professional opportunities. The system acts as a personalized radar, filtering through fragmented data sources to deliver high-signal matches directly to the user.
+A tool built to centralize and rank academic and tech opportunities. It automatically pulls data from various platforms and uses AI to find the best matches based on your specific profile.
 
-## Project Origin
-Developed primarily during daily bus commutes, this project focuses on high-utility output and resource efficiency. It solves the "information overload" problem by delegating the initial screening of hackathons and grants to a multi-tiered AI architecture.
+## 🚌 Project Story
+This project was developed in short bursts during daily bus commutes. The goal was to build something efficient that could turn a phone into a productive workstation, delegating the manual work of searching for hackathons and grants to an automated system.
 
-![Bot Interface Showcase](assets/bot_showcase.png)
+![Main Showcase](assets/main_showcase.png)
 
-## Core Capabilities
+## Key Features
 
-### 1. Autonomous Data Ingestion
-The system synchronizes data from multiple high-signal platforms:
-*   **Devpost API:** Global hackathons and project-based competitions.
-*   **Hack Club API & Scrapers:** Community events and "You Ship, We Ship" (YSWS) programs.
-*   **MLH (Major League Hacking):** Official student hackathon circuit.
-*   **TabNews RSS:** Community-driven tech insights and grants.
+### 1. Data Sources
+The system syncs in real-time with:
+*   **Devpost API:** Global hackathons and project competitions.
+*   **Hack Club API:** Community events, workshops, and AMAs.
+*   **Hack Club YSWS:** "You Ship, We Ship" programs for hardware and software.
+*   **MLH:** Official student hackathon circuit.
+*   **TabNews:** Tech community insights and research grants.
 
-### 2. Multi-Tiered AI Scoring
-To ensure 24/7 reliability and bypass API quotas, the engine uses a hierarchical scoring logic:
-*   **Primary:** Gemini 3.1 Flash-Lite (Fast, direct reasoning).
-*   **Secondary:** Gemini 1.5 Flash (Direct API fallback).
-*   **Tertiary:** OpenRouter Bridge (Access to Llama/Gemma free models).
+### 2. Personalized Ranking (BYOK)
+The system uses a **Bring Your Own Key** approach so you can scale your own usage:
+*   **Markdown Profiles:** Users can upload their own .md files to define their skills and interests.
+*   **Fallback System:** It uses Gemini 3.1 Flash/Pro and automatically switches to OpenRouter (Llama/Gemma) if quotas are hit.
+*   **Model Selection:** You can choose exactly which model you want to use via Discord commands.
 
-### 3. Proactive Radar Alerts
-Instead of a passive search, the system runs a background analyzer that triggers real-time Discord Webhook alerts when an opportunity matches >90% of the user's profile.
+### 3. Background Radar
+Instead of searching manually, the system runs a background process:
+*   **Auto-Sync:** Runs every 6 hours.
+*   **Alerts:** Sends a Discord notification via Webhook whenever a high-quality match (>90%) is found.
 
-![Proactive Alerta Example](assets/radar_alerts.png)
+![Radar Alerts](assets/radar_alerts.png)
 
-## Architecture
+## ⌨️ Commands
+
+| Command | Description |
+| :--- | :--- |
+| `/opportunities` | Syncs data and lists the Top 5 matches with AI rationales. |
+| `/hackclub` | Panel for Hack Club events and active programs. |
+| `/analyze` | Instant analysis for any pasted job or event text. |
+| `/config_profile` | Upload your Markdown profile for matching. |
+| `/config_model` | Select your AI provider and Model ID. |
+| `/config_gemini` | Store your Gemini API Key. |
+| `/config_openrouter` | Store your OpenRouter API Key. |
+| `/view_config` | See your settings and export your data. |
+| `/clear_config` | Delete specific settings or wipe your data. |
+| `/models` | Check which AI models are currently available. |
+
+## 🛠️ Tech Stack
 
 *   **Language:** Python 3.11+
-*   **Interface:** Discord (Slash Commands)
-*   **Database:** SQLite (Local persistence for offline analysis)
-*   **Deployment:** Containerized via Docker for Hack Club VM environments.
+*   **Interface:** Discord.py (Slash Commands & Interactive Buttons)
+*   **AI:** Google GenAI & OpenAI SDK (via OpenRouter)
+*   **Database:** SQLite (Local storage with auto-migrations)
+*   **Testing:** Unit and Mock tests using Pytest.
 
-## Setup & Deployment
+![Architecture Diagram](assets/architecture_diagram.png)
 
-### Credentials
-The system requires a `.env` file with the following keys:
-```env
-DISCORD_TOKEN=your_bot_token
-GEMINI_API_KEY=your_google_key
-DISCORD_WEBHOOK_URL=your_channel_webhook
-OPENROUTER_API_KEY=optional_fallback_key
-```
+## 🚀 Deployment
 
-### 24/7 Deployment (Docker)
-The project is optimized for low-resource environments (VPS/VM):
+### Docker (Recommended)
 ```bash
 docker-compose up -d --build
 ```
 
-### Manual Installation
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python bot.py
-```
+### Manual Setup
+1. **Env:** `python -m venv .venv && source .venv/bin/activate`
+2. **Deps:** `pip install -r requirements.txt`
+3. **Run:** `python bot.py` and `python main.py`
 
-## Commands
-*   `/opportunities` - Displays the top 5 curated matches for the current cycle.
-*   `/hackclub` - Dedicated panel for active YSWS programs and community events.
-*   `/analyze` - Real-time AI analysis for external text or job descriptions.
-*   `/config_gemini` - (BYOK) Allows users to provide their own API keys for personal scaling.
+## 🛡️ Privacy
+*   **Local Storage:** Your API keys and profiles stay in your own SQLite database.
+*   **Private Messages:** Configuration commands use ephemeral messages (only you can see them).
+*   **Full Control:** You can view or delete your data at any time.
 
 ---
 **Developer:** EngThi | **Status:** Stable MVP v1.0

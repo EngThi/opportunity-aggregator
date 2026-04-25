@@ -10,6 +10,7 @@ def test_parser_returns_list():
         assert "url" in results[0]
 
 def test_database_saves_opportunity():
+    database.init_db() # Garante que a tabela existe
     test_data = [{
         "title": "Test Opp",
         "url": "https://test.com/1",
@@ -18,9 +19,10 @@ def test_database_saves_opportunity():
         "type": "Test"
     }]
     saved = database.save_opportunity(test_data)
-    assert saved >= 0 # Pode ser 0 se já existir de rodadas anteriores
+    assert saved >= 0
 
 def test_database_no_duplicates():
+    database.init_db() # Garante que a tabela existe
     test_data = {
         "title": "Dup Test",
         "url": "https://test.com/dup",
@@ -30,10 +32,9 @@ def test_database_no_duplicates():
     }
     database.save_opportunity([test_data])
     saved = database.save_opportunity([test_data])
-    assert saved == 0 # Não deve salvar duplicata
+    assert saved == 0 
 
 def test_scorer_returns_int():
-    # Mock desc e skills
     score, rationale = scorer.AIScorer().score_opportunity({"title": "Python Dev", "description": "AWS", "source": "Test"})
     assert isinstance(score, int)
 
