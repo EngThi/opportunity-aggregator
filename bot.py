@@ -14,7 +14,7 @@ from sources.mlh import fetch_mlh
 from sources.tabnews import fetch_tabnews
 from sources.devpost import fetch_devpost
 from scorer import AIScorer
-from database import save_opportunity, init_db
+from database import save_opportunity, init_db, save_user_key
 import config
 
 # --- CONFIGURAÇÃO ---
@@ -40,17 +40,14 @@ class OpportunityBot(discord.Client):
 client = OpportunityBot()
 
 def validate_env():
-    """Valida se as chaves essenciais estão presentes"""
-    required = ["DISCORD_TOKEN", "GEMINI_API_KEY"]
-    missing = [key for key in required if not os.getenv(key)]
-    if missing:
-        print(f"❌ Erro: Variáveis faltando no .env: {', '.join(missing)}")
+    if not os.getenv("DISCORD_TOKEN"):
+        print("❌ Erro: DISCORD_TOKEN faltando no .env")
         return False
     return True
 
-def fetch_top_opportunities_sync():
+def fetch_top_opportunities_sync(user_id=None):
     all_opps = []
-    print("📡 Coletando oportunidades em background...")
+    print(f"📡 Coletando oportunidades para user {user_id}...")
     try:
         all_opps.extend(fetch_mlh())
         all_opps.extend(fetch_tabnews())
@@ -58,9 +55,9 @@ def fetch_top_opportunities_sync():
     except Exception as e:
         print(f"⚠️ Erro no scraping: {e}")
 
-    scorer = AIScorer()
+    # Usa o Scorer com as chaves do usuário (se existirem)
+    scorer = AIScorer(user_id=user_id)
     scored = []
-    # Processa as 10 mais recentes para ser rápido
     for opp in all_opps[:10]:
         score, rationale = scorer.score_opportunity(opp)
         opp["score"] = score
@@ -71,79 +68,60 @@ def fetch_top_opportunities_sync():
     save_opportunity(scored)
     return sorted(scored, key=lambda x: x["score"], reverse=True)[:5]
 
-@client.tree.command(name="opportunities", description="Top 5 oportunidades personalizadas via IA")
+@client.tree.command(name="opportunities", description="Top 5 oportunidades com seu perfil e sua chave de API")
 async def opportunities_cmd(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
-    
     loop = asyncio.get_event_loop()
-    top = await loop.run_in_executor(None, fetch_top_opportunities_sync)
+    top = await loop.run_in_executor(None, fetch_top_opportunities_sync, str(interaction.user.id))
 
     if not top:
-        await interaction.followup.send("⚠️ Nenhuma oportunidade disponível no momento.")
+        await interaction.followup.send("⚠️ Nenhuma oportunidade disponível.")
         return
 
-    embed = discord.Embed(
-        title="🚀 Top Opportunites for You",
-        description="I've analyzed the web and found these matches based on your profile.",
-        color=0x2ecc71 # Verde
-    )
-
+    embed = discord.Embed(title="🚀 Your Personalized Matches", color=0x2ecc71)
     for opp in top:
-        score_color = "🟢" if opp['score'] > 75 else "🟡" if opp['score'] > 50 else "🔴"
-        embed.add_field(
-            name=f"{score_color} {opp['score']}% - {opp['title'][:50]}",
-            value=f"**Source:** {opp['source']}\n{opp['rationale'][:150]}...\n[View Link]({opp['url']})",
-            inline=False
-        )
+        sc = "🟢" if opp['score'] > 75 else "🟡" if opp['score'] > 50 else "🔴"
+        embed.add_field(name=f"{sc} {opp['score']}% - {opp['title'][:50]}", value=f"{opp['rationale'][:150]}...\n[Link]({opp['url']})", inline=False)
     
-    embed.set_footer(text="Opportunity Aggregator · Built for the bus commute 🚌")
     await interaction.followup.send(embed=embed)
 
-@client.tree.command(name="models", description="Check current AI model configuration and live availability")
-async def models_cmd(interaction: discord.Interaction):
-    await interaction.response.defer(thinking=True)
-    
-    # Executa a busca em threads para não travar o bot
-    loop = asyncio.get_event_loop()
-    google_models = await loop.run_in_executor(None, config.fetch_available_google_models)
-    or_models = await loop.run_in_executor(None, config.fetch_available_openrouter_models)
-    
-    embed = discord.Embed(
-        title="🤖 Real-time AI Models",
-        description="Available models detected for your API keys.",
-        color=0x3498db # Azul
-    )
-    
-    # Google Section
-    g_text = ", ".join(google_models[:8]) + (f" (+{len(google_models)-8})" if len(google_models)>8 else "") if google_models else "None found."
-    embed.add_field(name="📍 Google Gemini API", value=f"```{g_text}```", inline=False)
-    
-    # OpenRouter Section
-    free_or = [m for m in or_models if ":free" in m]
-    or_text = "🆓 **Free:** " + ", ".join(free_or[:3]) + "..." if free_or else "No free models."
-    embed.add_field(name="📍 OpenRouter API", value=or_text, inline=False)
-    
-    embed.set_footer(text="Manage defaults in src/config.py")
-    await interaction.followup.send(embed=embed)
+@client.tree.command(name="config_gemini", description="Configure sua própria Gemini API Key (Privado)")
+async def config_gemini(interaction: discord.Interaction, key: str):
+    save_user_key(str(interaction.user.id), "gemini", key)
+    await interaction.response.send_message("✅ Sua Gemini API Key foi salva com sucesso e será usada como prioridade!", ephemeral=True)
 
-@client.tree.command(name="analyze", description="Análise instantânea de qualquer texto de vaga")
+@client.tree.command(name="config_openrouter", description="Configure sua própria OpenRouter API Key (Privado)")
+async def config_or(interaction: discord.Interaction, key: str):
+    save_user_key(str(interaction.user.id), "openrouter", key)
+    await interaction.response.send_message("✅ Sua OpenRouter API Key foi salva com sucesso!", ephemeral=True)
+
+@client.tree.command(name="analyze", description="Analisa um texto usando suas chaves de API")
 async def analyze_cmd(interaction: discord.Interaction, text: str):
     await interaction.response.defer(thinking=True)
-    
-    scorer = AIScorer()
-    mock_opp = {"title": "Custom Job", "description": text, "source": "Manual"}
+    scorer = AIScorer(user_id=str(interaction.user.id))
+    mock_opp = {"title": "Manual Analysis", "description": text, "source": "User"}
     score, rationale = scorer.score_opportunity(mock_opp)
     
-    color = 0x2ecc71 if score > 75 else 0xf1c40f if score > 50 else 0xe74c3c
+    color = 0x2ecc71 if score > 75 else 0xf1c40f
     embed = discord.Embed(title="🧠 Match Analysis", color=color)
     embed.add_field(name="Score", value=f"**{score}%**", inline=True)
     embed.add_field(name="Veredito", value=rationale, inline=False)
-    
+    await interaction.followup.send(embed=embed)
+
+@client.tree.command(name="models", description="Check live AI models availability")
+async def models_cmd(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    loop = asyncio.get_event_loop()
+    google_models = await loop.run_in_executor(None, config.fetch_available_google_models)
+    or_models = await loop.run_in_executor(None, config.fetch_available_openrouter_models)
+    embed = discord.Embed(title="🤖 Live AI Models", color=0x3498db)
+    embed.add_field(name="📍 Google Gemini", value=f"```{', '.join(google_models[:5])}...```", inline=False)
+    embed.add_field(name="📍 OpenRouter", value=f"Free models: {len([m for m in or_models if ':free' in m])}", inline=False)
     await interaction.followup.send(embed=embed)
 
 @client.event
 async def on_ready():
-    print(f"✅ Logado como {client.user} (ID: {client.user.id})")
+    print(f"✅ Logado como {client.user}")
     await client.change_presence(activity=discord.Game(name="/opportunities"))
 
 if __name__ == "__main__":

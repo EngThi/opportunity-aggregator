@@ -29,6 +29,41 @@ def init_db():
     conn.commit()
     conn.close()
 
+def init_user_db():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_settings (
+            user_id TEXT PRIMARY KEY,
+            gemini_key TEXT,
+            openrouter_key TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def save_user_key(user_id, service, key):
+    init_user_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    user_id = str(user_id)
+    if service == "gemini":
+        cursor.execute("INSERT INTO user_settings (user_id, gemini_key) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET gemini_key=?", (user_id, key, key))
+    else:
+        cursor.execute("INSERT INTO user_settings (user_id, openrouter_key) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET openrouter_key=?", (user_id, key, key))
+    conn.commit()
+    conn.close()
+
+def get_user_keys(user_id):
+    init_user_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT gemini_key, openrouter_key FROM user_settings WHERE user_id = ?", (str(user_id),))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else {}
+
 def save_opportunity(data):
     if not isinstance(data, list): data = [data]
     conn = sqlite3.connect(DB_PATH)
