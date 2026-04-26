@@ -155,4 +155,14 @@ def search_opportunities(keyword):
     conn.close()
     return [dict(r) for r in rows]
 
+def get_latest_opportunities(limit=10):
+    """Retorna as últimas oportunidades salvas"""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM opportunities ORDER BY created_at DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 init_db()

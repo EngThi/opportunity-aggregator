@@ -1,9 +1,14 @@
-# Opportunity Aggregator
+# Opportunity Aggregator 🚀
+
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Discord Bot](https://img.shields.io/badge/discord-bot-5865F2.svg)](https://discord.com/)
+[![AI-Powered](https://img.shields.io/badge/AI-Gemini%203.1-orange.svg)](https://aistudio.google.com/)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 
 A tool built to centralize and rank academic and tech opportunities. It automatically pulls data from various platforms and uses AI to find the best matches based on your specific profile.
 
 ## 🚌 Project Story
-A bit of parts in this project was developed in short bursts during daily bus commutes. The goal was to build something efficient that could turn a phone into a productive workstation, delegating the manual work of searching for hackathons and grants to an automated system.
+This project was developed in short bursts during daily bus commutes. The goal was to build something efficient that could turn a phone into a productive workstation, delegating the manual work of searching for hackathons and grants to an automated system.
 
 ![Main Showcase](assets/main_showcase.png)
 
@@ -15,6 +20,7 @@ The system syncs in real-time with:
 *   **Hack Club API:** Community events, workshops, and AMAs.
 *   **Hack Club YSWS:** "You Ship, We Ship" programs for hardware and software.
 *   **MLH:** Official student hackathon circuit.
+*   **GitHub Jobs:** Latest issues tagged with recruitment labels.
 *   **TabNews:** Tech community insights and research grants.
 
 ### 2. Personalized Ranking (BYOK)
@@ -23,10 +29,12 @@ The system uses a **Bring Your Own Key** approach so you can scale your own usag
 *   **Fallback System:** It uses Gemini 3.1 Flash/Pro and automatically switches to OpenRouter (Llama/Gemma) if quotas are hit.
 *   **Model Selection:** You can choose exactly which model you want to use via Discord commands.
 
+![User Configuration](assets/user_config.png)
+
 ### 3. Background Radar
-Instead of searching manually, the system runs a background process:
-*   **Auto-Sync:** Runs every 6 hours.
-*   **Alerts:** Sends a Discord notification via Webhook whenever a high-quality match (>90%) is found.
+The system operates using two main processes that run in parallel:
+*   **Discord Bot:** The interface for commands and interactive queries.
+*   **Background Radar:** A scheduled process that runs every 6 hours to sync new data and trigger alerts.
 
 ![Radar Alerts](assets/radar_alerts.png)
 
@@ -55,22 +63,29 @@ Instead of searching manually, the system runs a background process:
 
 ![Architecture Diagram](assets/architecture_diagram.png)
 
-## Deployment
+## 🚀 Deployment
 
 ### Docker (Recommended)
+Docker-compose manages both the bot and the radar automatically:
 ```bash
 docker-compose up -d --build
 ```
 
 ### Manual Setup
+**Note:** You should run both commands in separate terminal sessions (or use background processes) to keep the bot and the radar active at the same time.
+
 1. **Env:** `python -m venv .venv && source .venv/bin/activate`
 2. **Deps:** `pip install -r requirements.txt`
-3. **Run:** `python bot.py` and `python main.py`
+3. **Run Bot:** `python bot.py`
+4. **Run Radar:** `python main.py`
 
-## Privacy
+## 📧 Extra Tools
+*   **digest.py:** A standalone CLI tool to generate and send an HTML email digest of the latest opportunities found in the database. (Requires SMTP configuration in `.env`).
+
+## 🛡️ Privacy
 *   **Local Storage:** Your API keys and profiles stay in your own SQLite database.
 *   **Private Messages:** Configuration commands use ephemeral messages (only you can see them).
 *   **Full Control:** You can view or delete your data at any time.
 
 ---
-**Developer:** EngThi | **Status:** v1.0
+**Developer:** EngThi | **Status:** Stable MVP v1.0

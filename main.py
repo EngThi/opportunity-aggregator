@@ -11,6 +11,7 @@ from sources.mlh import fetch_mlh
 from sources.tabnews import fetch_tabnews
 from sources.devpost import fetch_devpost
 from sources.hackclub import fetch_hackclub
+from sources.github_jobs import fetch_github_jobs
 from scorer import AIScorer
 from database import save_opportunity, init_db
 from src import notifier
@@ -32,6 +33,9 @@ def run_aggregator():
     
     try: all_opportunities.extend(fetch_devpost())
     except: print("⚠️ Devpost Error")
+
+    try: all_opportunities.extend(fetch_github_jobs())
+    except: print("⚠️ GitHub Jobs Error")
 
     try: all_opportunities.extend(fetch_hackclub())
     except: print("⚠️ Hack Club Error")

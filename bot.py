@@ -14,6 +14,7 @@ from sources.mlh import fetch_mlh
 from sources.tabnews import fetch_tabnews
 from sources.devpost import fetch_devpost
 from sources.hackclub import fetch_hackclub
+from sources.github_jobs import fetch_github_jobs
 from scorer import AIScorer
 from database import save_opportunity, init_db, save_user_key, get_user_keys, save_user_profile, save_user_model, clear_user_setting
 import config
@@ -119,6 +120,7 @@ def fetch_top_opportunities_sync(user_id=None):
         all_opps.extend(fetch_tabnews())
         all_opps.extend(fetch_devpost())
         all_opps.extend(fetch_hackclub())
+        all_opps.extend(fetch_github_jobs())
     except Exception as e:
         print(f"⚠️ Scraping error: {e}")
 
