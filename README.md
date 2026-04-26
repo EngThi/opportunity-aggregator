@@ -1,9 +1,9 @@
-# Opportunity Aggregator 🚀
+# Opportunity Aggregator
 
 A tool built to centralize and rank academic and tech opportunities. It automatically pulls data from various platforms and uses AI to find the best matches based on your specific profile.
 
 ## 🚌 Project Story
-This project was developed in short bursts during daily bus commutes. The goal was to build something efficient that could turn a phone into a productive workstation, delegating the manual work of searching for hackathons and grants to an automated system.
+A bit of parts in this project was developed in short bursts during daily bus commutes. The goal was to build something efficient that could turn a phone into a productive workstation, delegating the manual work of searching for hackathons and grants to an automated system.
 
 ![Main Showcase](assets/main_showcase.png)
 
@@ -55,7 +55,7 @@ Instead of searching manually, the system runs a background process:
 
 ![Architecture Diagram](assets/architecture_diagram.png)
 
-## 🚀 Deployment
+## Deployment
 
 ### Docker (Recommended)
 ```bash
@@ -67,10 +67,10 @@ docker-compose up -d --build
 2. **Deps:** `pip install -r requirements.txt`
 3. **Run:** `python bot.py` and `python main.py`
 
-## 🛡️ Privacy
+## Privacy
 *   **Local Storage:** Your API keys and profiles stay in your own SQLite database.
 *   **Private Messages:** Configuration commands use ephemeral messages (only you can see them).
 *   **Full Control:** You can view or delete your data at any time.
 
 ---
-**Developer:** EngThi | **Status:** Stable MVP v1.0
+**Developer:** EngThi | **Status:** v1.0
