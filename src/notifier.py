@@ -27,7 +27,6 @@ def send_proactive_alert(opportunity):
     """
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook_url:
-        print("⚠️ Alerta proativo ignorado: DISCORD_WEBHOOK_URL não configurado.")
         return
 
     color = 0x2ecc71 # Verde para elite
@@ -38,8 +37,8 @@ def send_proactive_alert(opportunity):
             "url": opportunity['url'],
             "color": color,
             "fields": [
-                {"name": "Fonte", "value": opportunity['source'], "inline": True},
-                {"name": "Tipo", "value": opportunity.get('type', 'Hackathon'), "inline": True}
+                {"name": "Source", "value": opportunity['source'], "inline": True},
+                {"name": "Type", "value": opportunity.get('type', 'Hackathon'), "inline": True}
             ],
             "footer": {"text": "Sent by Proactive Radar 🛰️"}
         }]
@@ -51,3 +50,22 @@ def send_proactive_alert(opportunity):
             print(f"📡 Alerta enviado com sucesso para o Discord: {opportunity['title']}")
     except Exception as e:
         print(f"❌ Erro ao enviar Webhook: {e}")
+
+def send_status_update(message):
+    """
+    Envia uma atualização de status simples para o Discord.
+    """
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+    if not webhook_url: return
+
+    payload = {
+        "embeds": [{
+            "title": "📡 Radar Status Update",
+            "description": message,
+            "color": 0x34495e, # Cinza/Azul escuro
+            "footer": {"text": "Opportunity Aggregator Monitoring"}
+        }]
+    }
+    try:
+        requests.post(webhook_url, json=payload)
+    except: pass

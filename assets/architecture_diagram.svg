@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" width="900" height="580" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="discordGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#5865F2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4752C4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="aiGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a6b5a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d4a3d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="sourceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1c3a5e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2640;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dbGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3a1c5e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#250d40;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#e6a817"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#a371f7"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="580" fill="url(#bgGrad)" rx="12"/>
+  <!-- Grid lines subtle -->
+  <g opacity="0.04" stroke="#58a6ff" stroke-width="1">
+    <line x1="0" y1="100" x2="900" y2="100"/>
+    <line x1="0" y1="200" x2="900" y2="200"/>
+    <line x1="0" y1="300" x2="900" y2="300"/>
+    <line x1="0" y1="400" x2="900" y2="400"/>
+    <line x1="0" y1="500" x2="900" y2="500"/>
+    <line x1="150" y1="0" x2="150" y2="580"/>
+    <line x1="300" y1="0" x2="300" y2="580"/>
+    <line x1="450" y1="0" x2="450" y2="580"/>
+    <line x1="600" y1="0" x2="600" y2="580"/>
+    <line x1="750" y1="0" x2="750" y2="580"/>
+  </g>
+
+  <!-- Title -->
+  <text x="450" y="36" text-anchor="middle" fill="#e6edf3" font-size="17" font-weight="700" letter-spacing="1">Opportunity Aggregator — Architecture</text>
+  <text x="450" y="54" text-anchor="middle" fill="#6e7681" font-size="11">bot.py · scorer.py · notifier.py · sources/ · database.py</text>
+  <line x1="80" y1="62" x2="820" y2="62" stroke="#30363d" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SOURCES BOX -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="24" y="80" width="160" height="290" rx="10" fill="url(#sourceGrad)" stroke="#1f4f7a" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="24" y="80" width="160" height="32" rx="10" fill="#1f4f7a"/>
+  <rect x="24" y="100" width="160" height="12" fill="#1f4f7a"/>
+  <text x="104" y="101" text-anchor="middle" fill="#a5d8ff" font-size="11" font-weight="700" letter-spacing="0.5">📡  SOURCES</text>
+
+  <!-- source items -->
+  <rect x="36" y="124" width="136" height="34" rx="7" fill="#0d2640" stroke="#1f4f7a" stroke-width="1"/>
+  <text x="104" y="139" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">MLH</text>
+  <text x="104" y="152" text-anchor="middle" fill="#6e7681" font-size="9">mlh.py · RSS Feed</text>
+
+  <rect x="36" y="164" width="136" height="34" rx="7" fill="#0d2640" stroke="#1f4f7a" stroke-width="1"/>
+  <text x="104" y="179" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">Devpost</text>
+  <text x="104" y="192" text-anchor="middle" fill="#6e7681" font-size="9">devpost.py · API</text>
+
+  <rect x="36" y="204" width="136" height="34" rx="7" fill="#0d2640" stroke="#1f4f7a" stroke-width="1"/>
+  <text x="104" y="219" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">Hack Club</text>
+  <text x="104" y="232" text-anchor="middle" fill="#6e7681" font-size="9">hackclub.py · YSWS + Events</text>
+
+  <rect x="36" y="244" width="136" height="34" rx="7" fill="#0d2640" stroke="#1f4f7a" stroke-width="1"/>
+  <text x="104" y="259" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">TabNews</text>
+  <text x="104" y="272" text-anchor="middle" fill="#6e7681" font-size="9">tabnews.py · Tech BR</text>
+
+  <rect x="36" y="284" width="136" height="34" rx="7" fill="#0d2640" stroke="#1f4f7a" stroke-width="1"/>
+  <text x="104" y="299" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">GitHub Jobs</text>
+  <text x="104" y="312" text-anchor="middle" fill="#6e7681" font-size="9">github_jobs.py · (pending)</text>
+
+  <text x="104" y="353" text-anchor="middle" fill="#6e7681" font-size="9" font-style="italic">~15 raw items per cycle</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- AI SCORER BOX (center) -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="240" y="80" width="200" height="290" rx="10" fill="url(#aiGrad)" stroke="#1a6b5a" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="240" y="80" width="200" height="32" rx="10" fill="#1a6b5a"/>
+  <rect x="240" y="100" width="200" height="12" fill="#1a6b5a"/>
+  <text x="340" y="101" text-anchor="middle" fill="#7ee8d0" font-size="11" font-weight="700" letter-spacing="0.5">🧠  AI SCORER</text>
+
+  <rect x="252" y="124" width="176" height="50" rx="7" fill="#0d4a3d" stroke="#1a6b5a" stroke-width="1"/>
+  <text x="340" y="140" text-anchor="middle" fill="#7ee8d0" font-size="10" font-weight="600">User Profile (Markdown)</text>
+  <text x="340" y="153" text-anchor="middle" fill="#6e7681" font-size="9">BYOK: /config_profile</text>
+  <text x="340" y="165" text-anchor="middle" fill="#6e7681" font-size="9">Fallback: user_profile.md</text>
+
+  <rect x="252" y="182" width="176" height="70" rx="7" fill="#0d4a3d" stroke="#1a6b5a" stroke-width="1"/>
+  <text x="340" y="197" text-anchor="middle" fill="#7ee8d0" font-size="10" font-weight="600">Model Hierarchy</text>
+  <text x="340" y="211" text-anchor="middle" fill="#6e7681" font-size="9">① User preferred model</text>
+  <text x="340" y="223" text-anchor="middle" fill="#6e7681" font-size="9">② Gemini Flash / Pro</text>
+  <text x="340" y="235" text-anchor="middle" fill="#6e7681" font-size="9">③ OpenRouter (Llama/Gemma)</text>
+  <text x="340" y="247" text-anchor="middle" fill="#6e7681" font-size="9">④ Fallback score = 50</text>
+
+  <rect x="252" y="260" width="176" height="50" rx="7" fill="#0d4a3d" stroke="#1a6b5a" stroke-width="1"/>
+  <text x="340" y="276" text-anchor="middle" fill="#7ee8d0" font-size="10" font-weight="600">Output per Opportunity</text>
+  <text x="340" y="289" text-anchor="middle" fill="#6e7681" font-size="9">score: 0–100</text>
+  <text x="340" y="301" text-anchor="middle" fill="#6e7681" font-size="9">rationale: string (same lang)</text>
+
+  <text x="340" y="353" text-anchor="middle" fill="#6e7681" font-size="9" font-style="italic">scorer.py · config.py</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- DATABASE BOX -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="240" y="390" width="200" height="140" rx="10" fill="url(#dbGrad)" stroke="#4a2c8a" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="240" y="390" width="200" height="32" rx="10" fill="#4a2c8a"/>
+  <rect x="240" y="410" width="200" height="12" fill="#4a2c8a"/>
+  <text x="340" y="411" text-anchor="middle" fill="#d2a8ff" font-size="11" font-weight="700" letter-spacing="0.5">🗄️  SQLITE DATABASE</text>
+
+  <rect x="252" y="432" width="80" height="42" rx="6" fill="#250d40" stroke="#4a2c8a" stroke-width="1"/>
+  <text x="292" y="448" text-anchor="middle" fill="#d2a8ff" font-size="9" font-weight="600">opportunities</text>
+  <text x="292" y="461" text-anchor="middle" fill="#6e7681" font-size="8">scored items</text>
+  <text x="292" y="473" text-anchor="middle" fill="#6e7681" font-size="8">+ dedup</text>
+
+  <rect x="348" y="432" width="80" height="42" rx="6" fill="#250d40" stroke="#4a2c8a" stroke-width="1"/>
+  <text x="388" y="448" text-anchor="middle" fill="#d2a8ff" font-size="9" font-weight="600">user_settings</text>
+  <text x="388" y="461" text-anchor="middle" fill="#6e7681" font-size="8">keys · profile</text>
+  <text x="388" y="473" text-anchor="middle" fill="#6e7681" font-size="8">model prefs</text>
+
+  <text x="340" y="505" text-anchor="middle" fill="#6e7681" font-size="9" font-style="italic">database.py · auto-migrations</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- DISCORD BOT BOX -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="500" y="80" width="200" height="290" rx="10" fill="#1a1d3b" stroke="#3d4499" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="500" y="80" width="200" height="32" rx="10" fill="url(#discordGrad)"/>
+  <rect x="500" y="100" width="200" height="12" fill="#4752C4"/>
+  <text x="600" y="101" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" letter-spacing="0.5">🤖  DISCORD BOT</text>
+
+  <rect x="512" y="124" width="176" height="140" rx="7" fill="#12143a" stroke="#3d4499" stroke-width="1"/>
+  <text x="600" y="140" text-anchor="middle" fill="#bbc0ff" font-size="10" font-weight="600">Slash Commands</text>
+  <text x="522" y="157" fill="#6e7681" font-size="9">/opportunities   → Top 5 AI matches</text>
+  <text x="522" y="170" fill="#6e7681" font-size="9">/hackclub        → YSWS + Events</text>
+  <text x="522" y="183" fill="#6e7681" font-size="9">/analyze         → Instant analysis</text>
+  <text x="522" y="196" fill="#6e7681" font-size="9">/config_profile  → Set .md profile</text>
+  <text x="522" y="209" fill="#6e7681" font-size="9">/config_gemini   → Set Gemini key</text>
+  <text x="522" y="222" fill="#6e7681" font-size="9">/config_openrouter → OR key</text>
+  <text x="522" y="235" fill="#6e7681" font-size="9">/config_model    → Pick AI model</text>
+  <text x="522" y="248" fill="#6e7681" font-size="9">/view_config     → Export settings</text>
+  <text x="522" y="261" fill="#6e7681" font-size="9">/models          → Live model list</text>
+
+  <rect x="512" y="272" width="176" height="40" rx="7" fill="#12143a" stroke="#3d4499" stroke-width="1"/>
+  <text x="600" y="289" text-anchor="middle" fill="#bbc0ff" font-size="10" font-weight="600">Interactive UI</text>
+  <text x="600" y="303" text-anchor="middle" fill="#6e7681" font-size="9">Buttons · Ephemeral replies</text>
+
+  <text x="600" y="353" text-anchor="middle" fill="#6e7681" font-size="9" font-style="italic">bot.py · discord.py</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- BACKGROUND RADAR BOX -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="500" y="390" width="200" height="140" rx="10" fill="#1a1d3b" stroke="#3d4499" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="500" y="390" width="200" height="32" rx="10" fill="#2a4a2a"/>
+  <rect x="500" y="410" width="200" height="12" fill="#2a4a2a"/>
+  <text x="600" y="411" text-anchor="middle" fill="#7ee87e" font-size="11" font-weight="700" letter-spacing="0.5">📡  PROACTIVE RADAR</text>
+
+  <rect x="512" y="432" width="176" height="60" rx="7" fill="#111d11" stroke="#2a4a2a" stroke-width="1"/>
+  <text x="600" y="449" text-anchor="middle" fill="#7ee87e" font-size="10" font-weight="600">main.py  ·  notifier.py</text>
+  <text x="600" y="463" text-anchor="middle" fill="#6e7681" font-size="9">Runs every 6h (scheduler)</text>
+  <text x="600" y="476" text-anchor="middle" fill="#6e7681" font-size="9">Score &gt; 90% → Webhook alert</text>
+
+  <text x="600" y="505" text-anchor="middle" fill="#6e7681" font-size="9" font-style="italic">Legacy: Telegram · Active: Discord Webhook</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- WEBHOOK OUTPUT BOX -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="730" y="390" width="148" height="80" rx="10" fill="#1a1d1a" stroke="#3fb950" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="804" y="413" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">🔔 #daily-digest</text>
+  <text x="804" y="429" text-anchor="middle" fill="#6e7681" font-size="9">DISCORD_WEBHOOK_URL</text>
+  <text x="804" y="443" text-anchor="middle" fill="#6e7681" font-size="9">ELITE embed · score %</text>
+  <text x="804" y="457" text-anchor="middle" fill="#6e7681" font-size="9">Auto · no user needed</text>
+
+  <!-- USER box -->
+  <rect x="730" y="130" width="148" height="70" rx="10" fill="#1a1a1a" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="804" y="153" text-anchor="middle" fill="#c9d1d9" font-size="11" font-weight="700">👤 Discord User</text>
+  <text x="804" y="170" text-anchor="middle" fill="#6e7681" font-size="9">Types /command</text>
+  <text x="804" y="184" text-anchor="middle" fill="#6e7681" font-size="9">Sees ephemeral reply</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- ARROWS -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Sources → Scorer -->
+  <line x1="184" y1="225" x2="238" y2="225" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowBlue)"/>
+  <text x="211" y="218" text-anchor="middle" fill="#58a6ff" font-size="8">raw items</text>
+
+  <!-- Scorer → Discord Bot (top path) -->
+  <line x1="440" y1="200" x2="498" y2="200" stroke="#7ee8d0" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowBlue)"/>
+  <text x="469" y="193" text-anchor="middle" fill="#7ee8d0" font-size="8">scored</text>
+
+  <!-- Scorer ↔ Database -->
+  <line x1="340" y1="370" x2="340" y2="388" stroke="#a371f7" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+  <text x="358" y="382" fill="#a371f7" font-size="8">save</text>
+
+  <!-- Discord Bot ↔ Database -->
+  <line x1="560" y1="370" x2="430" y2="450" stroke="#a371f7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowPurple)"/>
+  <text x="508" y="405" fill="#a371f7" font-size="8">R/W keys</text>
+
+  <!-- User → Discord Bot -->
+  <line x1="730" y1="165" x2="702" y2="165" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <text x="716" y="158" text-anchor="middle" fill="#6e7681" font-size="8">/cmd</text>
+
+  <!-- Discord Bot → User reply -->
+  <line x1="702" y1="185" x2="730" y2="185" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <text x="716" y="198" text-anchor="middle" fill="#6e7681" font-size="8">embed</text>
+
+  <!-- Radar → Webhook -->
+  <line x1="700" y1="430" x2="728" y2="430" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <text x="714" y="423" text-anchor="middle" fill="#3fb950" font-size="8">POST</text>
+
+  <!-- Radar uses scorer too -->
+  <path d="M500,460 Q460,460 460,380 Q460,340 440,280" stroke="#e6a817" stroke-width="1.2" stroke-dasharray="4,3" fill="none" marker-end="url(#arrowOrange)"/>
+  <text x="445" y="420" fill="#e6a817" font-size="8">re-score</text>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- LEGEND -->
+  <!-- ═══════════════════════════════════════ -->
+  <rect x="24" y="520" width="852" height="44" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <line x1="50" y1="542" x2="80" y2="542" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="86" y="546" fill="#6e7681" font-size="9">Data flow</text>
+  <line x1="155" y1="542" x2="185" y2="542" stroke="#a371f7" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="191" y="546" fill="#6e7681" font-size="9">DB read/write</text>
+  <line x1="275" y1="542" x2="305" y2="542" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="311" y="546" fill="#6e7681" font-size="9">Webhook POST</text>
+  <line x1="398" y1="542" x2="428" y2="542" stroke="#e6a817" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="434" y="546" fill="#6e7681" font-size="9">Background (main.py)</text>
+  <text x="600" y="546" fill="#6e7681" font-size="9">BYOK = Bring Your Own Key</text>
+  <text x="760" y="546" fill="#30363d" font-size="9">EngThi/opportunity-aggregator</text>
+
+  <!-- subtle corner label -->
+  <text x="876" y="570" text-anchor="end" fill="#21262d" font-size="8">v1.0 MVP</text>
+</svg>

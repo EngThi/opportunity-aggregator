@@ -1,14 +1,14 @@
+import os
+from dotenv import load_dotenv
+load_dotenv(override=True) # Ensure new config is always loaded
+
 import discord
 from discord import app_commands, ui
 import asyncio
-import os
 import sys
-from dotenv import load_dotenv
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-
-load_dotenv()
 
 from sources.mlh import fetch_mlh
 from sources.tabnews import fetch_tabnews
@@ -78,7 +78,6 @@ class OpportunityActionView(ui.View):
     async def copy_info(self, interaction: discord.Interaction, button: ui.Button):
         try:
             text = f"🚀 **{self.opp_data['title']}**\n🎯 **Match:** {self.opp_data['score']}%\n🧠 **Verdict:** {self.opp_data['rationale']}\n🔗 **Link:** {self.opp_data['url']}"
-            # Se for muito grande para mensagem simples, manda em bloco de código
             if len(text) > 1900:
                 await interaction.response.send_message(f"**Opportunity Data:**\n```markdown\n{text[:1900]}\n```", ephemeral=True)
             else:
@@ -178,14 +177,16 @@ async def config_profile(interaction: discord.Interaction, profile_md: str):
 ])
 async def config_model(interaction: discord.Interaction, provider: app_commands.Choice[str], model_id: str = "default"):
     await interaction.response.defer(ephemeral=True)
-    u_keys = get_user_keys(str(interaction.user.id))
-    current_key = u_keys.get(f"{provider.value}_key") or (config.get_gemini_key() if provider.value == "gemini" else config.get_openrouter_key())
+    from database import get_user_keys, save_user_model, clear_user_setting
     
     if provider.value == "default":
         clear_user_setting(str(interaction.user.id), "model")
         await interaction.followup.send("✅ AI Engine reset to **Default Hierarchy**.", ephemeral=True)
         return
 
+    u_keys = get_user_keys(str(interaction.user.id))
+    current_key = u_keys.get(f"{provider.value}_key") or (config.get_gemini_key() if provider.value == "gemini" else config.get_openrouter_key())
+    
     if not current_key:
         await interaction.followup.send(f"❌ Error: No API Key found for **{provider.name}**. Use `/config_{provider.value}` first.", ephemeral=True)
         return

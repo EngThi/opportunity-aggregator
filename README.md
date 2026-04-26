@@ -12,6 +12,8 @@ This project was developed in short bursts during daily bus commutes. The goal w
 
 ![Main Showcase](assets/main_showcase.png)
 
+![Main Showcase](assets/main_showcase1.png)
+
 ## Key Features
 
 ### 1. Data Sources
@@ -53,7 +55,7 @@ The system operates using two main processes that run in parallel:
 | `/clear_config` | Delete specific settings or wipe your data. |
 | `/models` | Check which AI models are currently available. |
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 *   **Language:** Python 3.11+
 *   **Interface:** Discord.py (Slash Commands & Interactive Buttons)
@@ -61,9 +63,9 @@ The system operates using two main processes that run in parallel:
 *   **Database:** SQLite (Local storage with auto-migrations)
 *   **Testing:** Unit and Mock tests using Pytest.
 
-![Architecture Diagram](assets/architecture_diagram.png)
+![Architecture Diagram](assets/architecture_diagram.svg)
 
-## 🚀 Deployment
+## Deployment
 
 ### Docker (Recommended)
 Docker-compose manages both the bot and the radar automatically:
@@ -79,13 +81,13 @@ docker-compose up -d --build
 3. **Run Bot:** `python bot.py`
 4. **Run Radar:** `python main.py`
 
-## 📧 Extra Tools
+## Extra Tools
 *   **digest.py:** A standalone CLI tool to generate and send an HTML email digest of the latest opportunities found in the database. (Requires SMTP configuration in `.env`).
 
-## 🛡️ Privacy
+## Privacy
 *   **Local Storage:** Your API keys and profiles stay in your own SQLite database.
 *   **Private Messages:** Configuration commands use ephemeral messages (only you can see them).
 *   **Full Control:** You can view or delete your data at any time.
 
 ---
-**Developer:** EngThi | **Status:** Stable MVP v1.0
+**Developer:** EngThi | **Status:** v1.0
