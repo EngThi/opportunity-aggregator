@@ -1,7 +1,9 @@
 import sqlite3
 import os
 
-DB_PATH = "opportunities.db"
+# Caminho absoluto para evitar problemas no Docker
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, "opportunities.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
