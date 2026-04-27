@@ -102,7 +102,13 @@ class AIScorer:
         top_opps = sorted(scored_opportunities, key=lambda x: x['score'], reverse=True)[:5]
         opps_summary = "\n".join([f"- {o['title']} (Score: {o['score']}%): {o['description'][:100]}" for o in top_opps])
         
-        system_prompt = "You are a career strategist. Write a 3-sentence strategy. Response language MUST match the User Profile language."
+        system_prompt = """
+        You are a career strategist. Write a 3-sentence strategy based on the provided opportunities.
+        
+        CRITICAL LANGUAGE RULE: 
+        You MUST respond in the SAME LANGUAGE as the USER PROFILE.
+        If the profile is in English, your strategy MUST be in English, even if the opportunities are in Portuguese or another language.
+        """
         user_content = f"PROFILE:\n{user_profile}\n\nOPPS:\n{opps_summary}"
 
         if self.gemini_key:
