@@ -3,7 +3,9 @@ import os
 
 # Caminho absoluto para evitar problemas no Docker
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "opportunities.db")
+# Tenta usar a pasta /data se existir (Docker), senão usa a raiz
+DATA_DIR = "/app/data" if os.path.exists("/app/data") else BASE_DIR
+DB_PATH = os.path.join(DATA_DIR, "opportunities.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)

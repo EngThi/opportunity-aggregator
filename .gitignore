@@ -1,5 +1,6 @@
 # Credenciais
 .env
+chavesHC.pem
 
 # Ambiente virtual
 venv/

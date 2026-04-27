@@ -10,7 +10,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     volumes:
-      - ./opportunities.db:/app/opportunities.db
+      - ./data:/app/data
       - ./user_profile.md:/app/user_profile.md
     deploy:
       resources:

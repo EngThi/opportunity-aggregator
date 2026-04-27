@@ -10,6 +10,7 @@
     pkgs.stdenv.cc.cc.lib
     pkgs.libGL
     pkgs.xorg.libX11
+    pkgs.openssh
   ];
 
   env = {
