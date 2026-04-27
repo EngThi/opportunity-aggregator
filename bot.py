@@ -129,7 +129,7 @@ async def opportunities_cmd(interaction: discord.Interaction):
         await interaction.followup.send("⚠️ No opportunities found.")
         return
 
-    strategy_embed = discord.Embed(title="🧠 Strategic Recommendation", description=strategy, color=0x3498db)
+    strategy_embed = discord.Embed(title="🧠 Today's Strategic Recommendation", description=strategy, color=0x3498db)
     await interaction.followup.send(embed=strategy_embed)
 
     for opp in top:
@@ -155,7 +155,7 @@ async def config_profile(interaction: discord.Interaction, profile_md: str):
 @app_commands.choices(provider=[
     app_commands.Choice(name="Google Gemini", value="gemini"),
     app_commands.Choice(name="OpenRouter", value="openrouter"),
-    app_commands.Choice(name="Default", value="default")
+    app_commands.Choice(name="Default (Hierarchy Reset)", value="default")
 ])
 async def config_model(interaction: discord.Interaction, provider: app_commands.Choice[str], model_id: str = "default"):
     await interaction.response.defer(ephemeral=True)
@@ -216,17 +216,43 @@ async def analyze_cmd(interaction: discord.Interaction, text: str):
 async def models_cmd(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
     u_keys = get_user_keys(str(interaction.user.id))
-    g_models = config.fetch_available_google_models(u_keys.get("gemini_key"))
-    embed = discord.Embed(title="🤖 AI Models", description=f"Found {len(g_models)} Gemini models.", color=0x3498db)
+    loop = asyncio.get_event_loop()
+    g_models = await loop.run_in_executor(None, config.fetch_available_google_models, u_keys.get("gemini_key"))
+    embed = discord.Embed(title="🤖 AI Models", description=f"Found {len(g_models)} Gemini models available.", color=0x3498db)
     await interaction.followup.send(embed=embed)
 
-@client.tree.command(name="hackclub", description="🔥 Hack Club events")
+@client.tree.command(name="hackclub", description="🏴‍☠️ Explore the Pirate Sector: YSWS & Events")
 async def hackclub_cmd(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
-    items = fetch_hackclub()
-    embed = discord.Embed(title="🏴‍☠️ Hack Club", color=0xEC3750)
-    for p in items[:5]:
-        embed.add_field(name=p["title"][:100], value=f"[→ Access]({p['url']})", inline=True)
+    loop = asyncio.get_event_loop()
+    items = await loop.run_in_executor(None, fetch_hackclub)
+    
+    ysws = [i for i in items if i.get("type") == "ysws"][:6]
+    events = [i for i in items if i.get("type") == "event"][:5]
+
+    embed = discord.Embed(
+        title="🏴‍☠️ Hack Club Sector", 
+        description="Build hardware, games, or art and get rewarded. Ship and get recognized.",
+        color=0xEC3750
+    )
+    embed.set_thumbnail(url="https://assets.hackclub.com/icon-rounded.png")
+    
+    if ysws:
+        embed.add_field(name="🚀 Active YSWS Programs", value="\u200b", inline=False)
+        for p in ysws:
+            desc = p.get("description", "No description available.")
+            desc_short = (desc[:100] + "...") if len(desc) > 100 else desc
+            embed.add_field(name=f"📦 {p['title'][:50]}", value=f"{desc_short}\n[→ Ship this]({p['url']})", inline=True)
+
+    if events:
+        event_list = []
+        for e in events:
+            title = e['title'].replace('[HC Event] ', '').replace('[HC AMA] ', '')[:50]
+            event_list.append(f"• **{title}** [→ Join]({e['url']})")
+        
+        embed.add_field(name="📅 Upcoming Sector Events", value="\n".join(event_list), inline=False)
+
+    embed.set_footer(text="hackclub.com · #ship it in Slack")
     await interaction.followup.send(embed=embed)
 
 @client.event
