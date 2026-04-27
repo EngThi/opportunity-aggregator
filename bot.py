@@ -77,13 +77,28 @@ class OpportunityActionView(ui.View):
     @ui.button(label="Copy Match Info", style=discord.ButtonStyle.secondary, emoji="📋")
     async def copy_info(self, interaction: discord.Interaction, button: ui.Button):
         try:
-            text = f"🚀 **{self.opp_data['title']}**\n🎯 **Match:** {self.opp_data['score']}%\n🧠 **Verdict:** {self.opp_data['rationale']}\n🔗 **Link:** {self.opp_data['url']}"
+            # Step 1: Acknowledge the interaction immediately to prevent timeout
+            await interaction.response.defer(ephemeral=True)
+            
+            # Step 2: Build the text
+            text = (
+                f"🚀 **{self.opp_data.get('title', 'N/A')}**\n"
+                f"🎯 **Match:** {self.opp_data.get('score', 0)}%\n"
+                f"🧠 **Verdict:** {self.opp_data.get('rationale', 'No rationale provided.')}\n"
+                f"🔗 **Link:** {self.opp_data.get('url', 'No link available.')}"
+            )
+            
+            # Step 3: Handle Discord character limits
             if len(text) > 1900:
-                await interaction.response.send_message(f"**Opportunity Data:**\n```markdown\n{text[:1900]}\n```", ephemeral=True)
+                await interaction.followup.send(f"**Opportunity Data (Technical Summary):**\n```markdown\n{text[:1900]}\n```", ephemeral=True)
             else:
-                await interaction.response.send_message(f"**Copyable Opportunity Data:**\n>>> {text}", ephemeral=True)
+                await interaction.followup.send(f"**Copyable Opportunity Data:**\n>>> {text}", ephemeral=True)
         except Exception as e:
-            await interaction.response.send_message(f"❌ Error copying data: {e}", ephemeral=True)
+            print(f"❌ Copy Info Error: {e}")
+            try:
+                await interaction.followup.send(f"❌ Error copying data: {str(e)}", ephemeral=True)
+            except:
+                pass
 
 # --- BOT LOGIC ---
 
@@ -125,6 +140,7 @@ def fetch_top_opportunities_sync(user_id=None):
 
     scorer = AIScorer(user_id=user_id)
     scored = []
+    # Usamos os 15 mais recentes
     for opp in all_opps[:15]:
         score, rationale = scorer.score_opportunity(opp)
         opp["score"] = score
@@ -162,6 +178,7 @@ async def opportunities_cmd(interaction: discord.Interaction):
             embed.description = rationale[:1000] + "..."
             embed.add_field(name="└─ Continuation", value=f"...{rationale[1000:2000]}\n\n[→ Access Opportunity]({opp['url']})", inline=False)
         view = OpportunityActionView(opp)
+        # Enviamos no canal da interação para cada vaga ter seu botão
         await interaction.channel.send(embed=embed, view=view)
 
 @client.tree.command(name="config_profile", description="Set your personal Markdown profile for AI matching")
@@ -177,16 +194,14 @@ async def config_profile(interaction: discord.Interaction, profile_md: str):
 ])
 async def config_model(interaction: discord.Interaction, provider: app_commands.Choice[str], model_id: str = "default"):
     await interaction.response.defer(ephemeral=True)
-    from database import get_user_keys, save_user_model, clear_user_setting
+    u_keys = get_user_keys(str(interaction.user.id))
+    current_key = u_keys.get(f"{provider.value}_key") or (config.get_gemini_key() if provider.value == "gemini" else config.get_openrouter_key())
     
     if provider.value == "default":
         clear_user_setting(str(interaction.user.id), "model")
         await interaction.followup.send("✅ AI Engine reset to **Default Hierarchy**.", ephemeral=True)
         return
 
-    u_keys = get_user_keys(str(interaction.user.id))
-    current_key = u_keys.get(f"{provider.value}_key") or (config.get_gemini_key() if provider.value == "gemini" else config.get_openrouter_key())
-    
     if not current_key:
         await interaction.followup.send(f"❌ Error: No API Key found for **{provider.name}**. Use `/config_{provider.value}` first.", ephemeral=True)
         return
