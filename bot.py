@@ -7,6 +7,7 @@ from discord import app_commands, ui
 import asyncio
 import sys
 import json
+import sqlite3
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -35,7 +36,6 @@ class ExportConfigButtons(ui.View):
     async def _handle_export(self, interaction: discord.Interaction, key_name, label):
         try:
             await interaction.response.defer(ephemeral=True)
-            # If user_id is not in memory (after restart), use the interaction user
             uid = self.user_id or str(interaction.user.id)
             u = get_user_keys(uid)
             val = u.get(key_name)
@@ -70,48 +70,6 @@ class ExportConfigButtons(ui.View):
         except Exception as e:
             await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
 
-class OpportunityActionView(ui.View):
-    """Dynamic persistent view for individual opportunities"""
-    def __init__(self, opp_id=None):
-        super().__init__(timeout=None)
-        if opp_id:
-            # Create a button dynamically with a custom_id containing the ID
-            btn = ui.Button(
-                label="Copy Match Info", 
-                style=discord.ButtonStyle.secondary, 
-                emoji="📋", 
-                custom_id=f"copy_opp_{opp_id}"
-            )
-            btn.callback = self.copy_info_callback
-            self.add_item(btn)
-
-    async def copy_info_callback(self, interaction: discord.Interaction):
-        # This will be called by dynamic buttons
-        custom_id = interaction.data['custom_id']
-        opp_id = custom_id.replace("copy_opp_", "")
-        await self._process_copy(interaction, opp_id)
-
-    async def _process_copy(self, interaction, opp_id):
-        try:
-            await interaction.response.defer(ephemeral=True)
-            opp = get_opportunity_by_id(opp_id)
-            if not opp:
-                await interaction.followup.send("❌ Opportunity data no longer available in database.", ephemeral=True)
-                return
-            
-            text = (
-                f"🚀 **{opp.get('title', 'N/A')}**\n"
-                f"🎯 **Match:** {opp.get('score', 0)}%\n"
-                f"🧠 **Verdict:** {opp.get('rationale', 'N/A')}\n"
-                f"🔗 **Link:** {opp.get('url', 'N/A')}"
-            )
-            if len(text) > 1900:
-                await interaction.followup.send(f"**Data:**\n```markdown\n{text[:1900]}\n```", ephemeral=True)
-            else:
-                await interaction.followup.send(f"**Copyable Data:**\n>>> {text}", ephemeral=True)
-        except Exception as e:
-            await interaction.followup.send(f"❌ Copy Error: {e}", ephemeral=True)
-
 # --- BOT LOGIC ---
 
 class OpportunityBot(discord.Client):
@@ -121,10 +79,7 @@ class OpportunityBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
-        # 1. Register Persistent Config View
         self.add_view(ExportConfigButtons())
-        
-        # 2. Sync Commands
         if GUILD_ID:
             guild = discord.Object(id=int(GUILD_ID))
             self.tree.copy_global_to(guild=guild)
@@ -133,15 +88,6 @@ class OpportunityBot(discord.Client):
         else:
             await self.tree.sync()
             print("✅ Commands synced globally")
-
-    async def on_interaction(self, interaction: discord.Interaction):
-        # Global handler for dynamic copy buttons (copy_opp_XXX)
-        if interaction.type == discord.InteractionType.component:
-            custom_id = interaction.data.get('custom_id', '')
-            if custom_id.startswith("copy_opp_"):
-                opp_id = custom_id.replace("copy_opp_", "")
-                view = OpportunityActionView()
-                await view._process_copy(interaction, opp_id)
 
 client = OpportunityBot()
 
@@ -170,32 +116,8 @@ def fetch_top_opportunities_sync(user_id=None):
         scored.append(opp)
 
     init_db()
-    # save_opportunity returns the number of saved items, but we need the IDs.
-    # The logic here is: save_opportunity ensures they are in DB.
     save_opportunity(scored)
-    
-    # Reload from DB to get the IDs of the Top 5
-    conn = sqlite3.connect(init_db.__globals__['DB_PATH'])
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    # Get latest 15 to find matches for our 'scored' list
-    cursor.execute("SELECT * FROM opportunities ORDER BY created_at DESC LIMIT 30")
-    rows = cursor.fetchall()
-    conn.close()
-    
-    db_items = [dict(r) for r in rows]
-    final_top = []
-    for s in scored:
-        # Match by URL (unique)
-        match = next((item for item in db_items if item['url'] == s['url']), None)
-        if match:
-            final_top.append(match)
-
-    top_5 = sorted(final_top, key=lambda x: x["score"], reverse=True)[:5]
-    strategy = scorer.generate_daily_strategy(top_5)
-    return top_5, strategy
-
-import sqlite3 # Needed for the fetch function above
+    return sorted(scored, key=lambda x: x["score"], reverse=True)[:5], scorer.generate_daily_strategy(scored[:5])
 
 @client.tree.command(name="opportunities", description="Top 5 personalized matches using your AI profile")
 async def opportunities_cmd(interaction: discord.Interaction):
@@ -222,9 +144,7 @@ async def opportunities_cmd(interaction: discord.Interaction):
             embed.description = rationale[:1000] + "..."
             embed.add_field(name="└─ Continuation", value=f"...{rationale[1000:2000]}\n\n[→ Access Opportunity]({opp['url']})", inline=False)
         
-        # Use the Persistent ID from Database
-        view = OpportunityActionView(opp_id=opp['id'])
-        await interaction.channel.send(embed=embed, view=view)
+        await interaction.channel.send(embed=embed)
 
 @client.tree.command(name="config_profile", description="Set your personal Markdown profile")
 async def config_profile(interaction: discord.Interaction, profile_md: str):
