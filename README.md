@@ -28,6 +28,11 @@ The system syncs in real-time with:
 ### 2. Personalized Ranking (BYOK)
 The system uses a **Bring Your Own Key** approach so you can scale your own usage:
 *   **Markdown Profiles:** Users can upload their own .md files to define their skills and interests.
+    *   *Need a starting point?* Check our [Profile Templates](PROFILES/):
+        *   [🌐 Web Developer](PROFILES/web_developer.md)
+        *   [🤖 AI/ML Expert](PROFILES/ai_ml_expert.md)
+        *   [🛠️ Hardware Hacker](PROFILES/hardware_hacker.md)
+        *   [🎓 Student Explorer](PROFILES/student_explorer.md)
 *   **Fallback System:** It uses Gemini 3.1 Flash/Pro and automatically switches to OpenRouter (Llama/Gemma) if quotas are hit.
 *   **Model Selection:** You can choose exactly which model you want to use via Discord commands.
 
