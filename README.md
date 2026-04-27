@@ -14,6 +14,8 @@ This project was developed in short bursts during daily bus commutes. The goal w
 
 ## 🚀 Live Demo — Try it yourself!
 
+**Join our Demo Server:** [Click here to join Discord](https://discord.gg/3HRV6G4G)
+
 The bot is live in our Discord server. Use any command below:
 
 | Command | What it does |
