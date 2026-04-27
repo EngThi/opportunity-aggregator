@@ -12,18 +12,35 @@ This project was developed in short bursts during daily bus commutes. The goal w
 
 ![Main Showcase](assets/main_showcase.png)
 
-![Main Showcase](assets/main_showcase1.png)
+## 🚀 Live Demo — Try it yourself!
+
+The bot is live in our Discord server. Use any command below:
+
+| Command | What it does |
+|:---|:---|
+| `/opportunities` | Top 5 AI-ranked opportunities from live sources |
+| `/hackclub` | Active YSWS programs + Hack Club events |
+| `/analyze [text]` | Paste any text → instant AI fit score |
+| `/models` | See available Gemini/OpenRouter models |
+
+**Example:**
+`/analyze text:Build a PCB and win free hardware from Hack Club`
+
+> The bot fetches live data from **MLH, Devpost, TabNews, GitHub Jobs** and the **Hack Club API** (YSWS + Events), then ranks results using the **Gemini AI scorer** with automatic fallback to OpenRouter.
+>
+> In the background, the radar service runs every 6h and pushes **elite matches (>90%)** to Discord automatically via webhook — no command needed.
 
 ## Key Features
 
 ### 1. Data Sources
-The system syncs in real-time with:
-*   **Devpost API:** Global hackathons and project competitions.
-*   **Hack Club API:** Community events, workshops, and AMAs.
-*   **Hack Club YSWS:** "You Ship, We Ship" programs for hardware and software.
-*   **MLH:** Official student hackathon circuit.
-*   **GitHub Jobs:** Latest issues tagged with recruitment labels.
-*   **TabNews:** Tech community insights and research grants.
+
+| Source | File | Used in |
+|:---|:---|:---|
+| MLH | `sources/mlh.py` | Bot + Radar |
+| Devpost | `sources/devpost.py` | Bot + Radar |
+| Hack Club YSWS + Events | `sources/hackclub.py` | Bot + Radar |
+| TabNews | `sources/tabnews.py` | Bot + Radar |
+| GitHub Jobs | `sources/github_jobs.py` | Bot + Radar |
 
 ### 2. Personalized Ranking (BYOK)
 The system uses a **Bring Your Own Key** approach so you can scale your own usage:
@@ -60,7 +77,7 @@ The system operates using two main processes that run in parallel:
 | `/clear_config` | Delete specific settings or wipe your data. |
 | `/models` | Check which AI models are currently available. |
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 *   **Language:** Python 3.11+
 *   **Interface:** Discord.py (Slash Commands & Interactive Buttons)
@@ -68,9 +85,9 @@ The system operates using two main processes that run in parallel:
 *   **Database:** SQLite (Local storage with auto-migrations)
 *   **Testing:** Unit and Mock tests using Pytest.
 
-![Architecture Diagram](assets/architecture_diagram.svg)
+![Architecture Diagram](assets/architecture_diagram.png)
 
-## Deployment
+## 🚀 Deployment
 
 ### Docker (Recommended)
 Docker-compose manages both the bot and the radar automatically:
@@ -86,13 +103,10 @@ docker-compose up -d --build
 3. **Run Bot:** `python bot.py`
 4. **Run Radar:** `python main.py`
 
-## Extra Tools
-*   **digest.py:** A standalone CLI tool to generate and send an HTML email digest of the latest opportunities found in the database. (Requires SMTP configuration in `.env`).
-
-## Privacy
+## 🛡️ Privacy
 *   **Local Storage:** Your API keys and profiles stay in your own SQLite database.
 *   **Private Messages:** Configuration commands use ephemeral messages (only you can see them).
 *   **Full Control:** You can view or delete your data at any time.
 
 ---
-**Developer:** EngThi | **Status:** v1.0
+**Developer:** EngThi | **Status:** Stable MVP v1.0
