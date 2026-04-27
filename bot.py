@@ -18,7 +18,7 @@ from sources.devpost import fetch_devpost
 from sources.hackclub import fetch_hackclub
 from sources.github_jobs import fetch_github_jobs
 from scorer import AIScorer
-from database import save_opportunity, init_db, save_user_key, get_user_keys, save_user_profile, save_user_model, clear_user_setting, get_opportunity_by_id
+from database import save_opportunity, init_db, save_user_key, get_user_keys, save_user_profile, save_user_model, clear_user_setting
 import config
 
 # --- CONFIGURATION ---
