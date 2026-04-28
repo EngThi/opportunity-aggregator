@@ -89,7 +89,7 @@ The system operates using two main processes that run in parallel:
 *   **Database:** SQLite (Local storage with auto-migrations)
 *   **Testing:** Unit and Mock tests using Pytest.
 
-![Architecture Diagram](assets/architecture_diagram.png)
+![Architecture Diagram](assets/architecture_diagram.svg)
 
 ## 🚀 Deployment
 
