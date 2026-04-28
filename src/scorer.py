@@ -26,7 +26,7 @@ class AIScorer:
         1. LANGUAGE: You MUST respond in the SAME LANGUAGE as the USER PROFILE headers/content.
         2. If the User Profile is in English, your 'rationale' MUST be in English, even if the opportunity is in Portuguese or any other language.
         3. FORMAT: Return ONLY a valid JSON object. No extra text.
-        4. STRUCTURE: {"score": <int>, "rationale": "<analysis>"}
+        4. STRUCTURE: {"score": <int between 0 and 100>, "rationale": "<analysis>"}
         """
 
     def _load_profile(self):
@@ -35,11 +35,22 @@ class AIScorer:
             with open("user_profile.md", "r", encoding="utf-8") as f: return f.read()
         except: return "Developer interested in AI, Hackathons and Automation."
 
+    def _extract_json(self, text):
+        import re
+        match = re.search(r'\{.*\}', text.replace('\n', ' '), re.DOTALL)
+        if match:
+            try: return json.loads(match.group(0))
+            except: pass
+        if "```json" in text:
+            try: return json.loads(text.split("```json")[1].split("```")[0].strip())
+            except: pass
+        return {}
+
     def score_opportunity(self, opportunity):
         user_profile = self._load_profile()
         system_prompt = self._get_system_prompt()
         
-        # User prompt mais agressivo sobre o idioma
+        # User prompt mais agressivo sobre o idioma e formato
         user_content = f"""
         USER PROFILE:
         {user_profile}
@@ -50,6 +61,7 @@ class AIScorer:
         INSTRUCTION:
         Evaluate the match. Respond strictly in the language of the USER PROFILE.
         If profile is English -> Rationale MUST be English.
+        Provide a SCORE between 0 and 100.
         """
         
         # --- PREFERRED MODEL ---
@@ -63,18 +75,16 @@ class AIScorer:
                         messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_content}]
                     )
                     text = response.choices[0].message.content.strip()
-                    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-                    result = json.loads(text)
-                    return result.get("score", 0), result.get("rationale", "N/A")
+                    result = self._extract_json(text)
+                    if result: return result.get("score", 0), result.get("rationale", "N/A")
                 except: pass
             elif provider == "gemini" and self.gemini_key:
                 try:
                     client = genai.Client(api_key=self.gemini_key)
                     response = client.models.generate_content(model=model_id, config={'system_instruction': system_prompt}, contents=user_content)
                     text = response.text.strip()
-                    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-                    result = json.loads(text)
-                    return result.get("score", 0), result.get("rationale", "N/A")
+                    result = self._extract_json(text)
+                    if result: return result.get("score", 0), result.get("rationale", "N/A")
                 except: pass
 
         # --- DEFAULT HIERARCHY (Optimized for speed) ---
@@ -89,9 +99,8 @@ class AIScorer:
                         contents=user_content
                     )
                     text = response.text.strip()
-                    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-                    result = json.loads(text)
-                    return result.get("score", 0), result.get("rationale", "N/A")
+                    result = self._extract_json(text)
+                    if result: return result.get("score", 0), result.get("rationale", "N/A")
                 except:
                     continue
 

@@ -89,7 +89,7 @@ def get_user_keys(user_id):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT gemini_key, openrouter_key, profile_md FROM user_settings WHERE user_id = ?", (str(user_id),))
+    cursor.execute("SELECT gemini_key, openrouter_key, profile_md, preferred_model FROM user_settings WHERE user_id = ?", (str(user_id),))
     row = cursor.fetchone()
     conn.close()
     return dict(row) if row else {}
