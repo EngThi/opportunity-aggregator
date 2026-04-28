@@ -1,6 +1,6 @@
 ![Banner](assets/banner.png)
 
-# Opportunity Aggregator 🚀
+# Opportunity Aggregator 
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Discord Bot](https://img.shields.io/badge/discord-bot-5865F2.svg)](https://discord.com/)
@@ -14,7 +14,7 @@ This project was developed in short bursts during daily bus commutes. The goal w
 
 ![Main Showcase](assets/main_showcase.png)
 
-## 🚀 Live Demo — Try it yourself!
+## Live Demo — Try it yourself! 
 
 **Join our Demo Server:** [Click here to join Discord](https://discord.gg/3HRV6G4G)
 
@@ -107,10 +107,10 @@ docker-compose up -d --build
 3. **Run Bot:** `python bot.py`
 4. **Run Radar:** `python main.py`
 
-## 🛡️ Privacy
+## Privacy
 *   **Local Storage:** Your API keys and profiles stay in your own SQLite database.
 *   **Private Messages:** Configuration commands use ephemeral messages (only you can see them).
 *   **Full Control:** You can view or delete your data at any time.
 
 ---
-**Developer:** EngThi | **Status:** Stable MVP v1.0
+**Developer:** EngThi | **Status:** v1.0
