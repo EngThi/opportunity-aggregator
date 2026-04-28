@@ -39,10 +39,16 @@ class AIScorer:
         import re
         match = re.search(r'\{.*\}', text.replace('\n', ' '), re.DOTALL)
         if match:
-            try: return json.loads(match.group(0))
+            try: 
+                data = json.loads(match.group(0))
+                if "score" in data: data["score"] = int(data["score"])
+                return data
             except: pass
         if "```json" in text:
-            try: return json.loads(text.split("```json")[1].split("```")[0].strip())
+            try: 
+                data = json.loads(text.split("```json")[1].split("```")[0].strip())
+                if "score" in data: data["score"] = int(data["score"])
+                return data
             except: pass
         return {}
 
