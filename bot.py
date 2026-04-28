@@ -140,18 +140,67 @@ async def guide_cmd(interaction: discord.Interaction):
 
 @client.tree.command(name="opportunities", description="Top 5 personalized matches using your AI profile")
 async def opportunities_cmd(interaction: discord.Interaction):
-    await interaction.response.defer(thinking=True)
+    await interaction.response.defer()
+    status_msg = await interaction.followup.send("🚀 **Smart Sync Initialized...**")
+    
     loop = asyncio.get_event_loop()
-    top, strategy = await loop.run_in_executor(None, fetch_top_opportunities_sync, str(interaction.user.id))
+    all_opps = []
+    
+    # 1. Scraping Step-by-Step
+    sources = [
+        ("MLH", fetch_mlh),
+        ("TabNews", fetch_tabnews),
+        ("Devpost", fetch_devpost),
+        ("Hack Club", fetch_hackclub),
+        ("GitHub Jobs", fetch_github_jobs)
+    ]
+    
+    for name, fetch_func in sources:
+        await status_msg.edit(content=f"📡 **Scraping {name}...**")
+        try:
+            res = await loop.run_in_executor(None, fetch_func)
+            if res: all_opps.extend(res)
+        except Exception as e:
+            print(f"Error fetching {name}: {e}")
 
-    if not top:
-        await interaction.followup.send("⚠️ No opportunities found.")
+    if not all_opps:
+        await status_msg.edit(content="⚠️ No opportunities found in any source.")
         return
 
-    strategy_embed = discord.Embed(title="🧠 Today's Strategic Recommendation", description=strategy, color=0x3498db)
-    await interaction.followup.send(embed=strategy_embed)
+    # 2. AI Scoring Step-by-Step
+    await status_msg.edit(content=f"✅ Found {len(all_opps)} items. 🧠 **AI Analyzing matches for your profile...**")
+    
+    scorer = AIScorer(user_id=str(interaction.user.id))
+    scored = []
+    to_analyze = all_opps[:15] # Limit for speed
+    
+    for i, opp in enumerate(to_analyze):
+        if i % 3 == 0: # Update status every 3 items to avoid rate limits
+            await status_msg.edit(content=f"🧠 **AI Scorer:** {i}/{len(to_analyze)} opportunities analyzed...")
+        
+        try:
+            score, rationale = await loop.run_in_executor(None, scorer.score_opportunity, opp)
+            opp["score"] = score
+            opp["rationale"] = rationale
+            scored.append(opp)
+        except:
+            continue
 
-    for opp in top:
+    # 3. Final Strategy & Save
+    await status_msg.edit(content="💾 **Saving results and generating strategy...**")
+    init_db()
+    await loop.run_in_executor(None, save_opportunity, scored)
+    
+    top_5 = sorted(scored, key=lambda x: x["score"], reverse=True)[:5]
+    strategy = await loop.run_in_executor(None, scorer.generate_daily_strategy, scored[:5])
+
+    # 4. Final Display
+    await status_msg.edit(content=f"✨ **Sync Complete!** Showing top {len(top_5)} matches.")
+    
+    strategy_embed = discord.Embed(title="🧠 Today's Strategic Recommendation", description=strategy, color=0x3498db)
+    await interaction.channel.send(embed=strategy_embed)
+
+    for opp in top_5:
         sc = "🟢" if opp['score'] > 75 else "🟡" if opp['score'] > 50 else "🔴"
         title = f"{sc} {opp['score']}% - {opp['title'][:200]}"
         embed = discord.Embed(title=title, color=0x2ecc71 if opp['score'] > 75 else 0xf1c40f)
