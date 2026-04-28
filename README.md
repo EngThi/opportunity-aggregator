@@ -47,7 +47,10 @@ The bot is live in our Discord server. Use any command below:
 | GitHub Jobs | `sources/github_jobs.py` | Bot + Radar |
 
 ### 2. Personalized Ranking (BYOK)
-The system uses a **Bring Your Own Key** approach so you can scale your own usage:
+The system uses a **Bring Your Own Key** approach so you can scale your own usage.
+
+**Check our [🔑 API & Configuration Guide](API_GUIDE.md) to learn how to get your keys for free.**
+
 *   **Markdown Profiles:** Users can upload their own .md files to define their skills and interests.
     *   *Need a starting point?* Check our [Profile Templates](PROFILES/):
         *   [🌐 Web Developer](PROFILES/web_developer.md)
