@@ -1,22 +1,45 @@
 version: '3.8'
 
 services:
-  opportunity-aggregator:
+  opportunity-bot:
     build: .
     container_name: opportunity-bot
     restart: always
+    command: python bot.py
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     volumes:
       - ./data:/app/data
-      - ./user_profile.md:/app/user_profile.md
     deploy:
       resources:
         limits:
           cpus: '0.5'
-          memory: 512M
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  opportunity-radar:
+    build: .
+    container_name: opportunity-radar
+    restart: always
+    command: python main.py
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    volumes:
+      - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 128M
     logging:
       driver: "json-file"
       options:
