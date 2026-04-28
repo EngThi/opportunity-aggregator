@@ -169,4 +169,14 @@ def get_latest_opportunities(limit=10):
     conn.close()
     return [dict(r) for r in rows]
 
+def get_opportunity_by_id(opp_id):
+    """Busca uma oportunidade específica pelo ID"""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM opportunities WHERE id = ?", (opp_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
 init_db()

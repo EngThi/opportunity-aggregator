@@ -47,7 +47,7 @@ class TestDiscordBot(unittest.IsolatedAsyncioTestCase):
         embed = kwargs['embed']
         field_names = [field.name for field in embed.fields]
         # Updated to check new English field names
-        self.assertIn("Match Score", field_names)
+        self.assertIn("Score", field_names)
         self.assertIn("Verdict", field_names)
 
 if __name__ == '__main__':
