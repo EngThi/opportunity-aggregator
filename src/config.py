@@ -40,8 +40,8 @@ def fetch_available_openrouter_models(custom_key=None):
         return []
 
 GOOGLE_DEFAULT_MODELS = [
-    "gemini-3-flash-preview", 
     "gemini-3.1-flash-lite-preview", 
-    "gemini-3.1-pro-preview"
+    "gemini-3.1-pro-preview",
+    "gemini-3-flash-preview"
 ]
 OPENROUTER_DEFAULT_MODEL = "google/gemma-3-4b-it:free"

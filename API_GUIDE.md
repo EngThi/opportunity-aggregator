@@ -13,8 +13,8 @@ The bot is optimized for the **Gemini 3.1** family.
 5.  **Copy the key** and use `/config_gemini` in Discord.
 
 ### Important Notes:
-*   **Gemini 1.5 Flash:** Extremely fast and has a generous free tier.
-*   **Gemini 1.5 Pro:** More powerful but has stricter rate limits on the free tier.
+*   **Gemini 3.1 Flash-Lite:** The current **default** for the bot. Optimized for speed and low-latency analysis with a massive free tier on AI Studio.
+*   **Gemini 3.1 Pro:** Best for complex reasoning and deep profile analysis.
 *   **GCP Linking:** If you want to use "Pay-as-you-go" or avoid some regional restrictions, you may need to link your AI Studio project to a **Google Cloud Platform (GCP)** project with a billing account attached. However, for most users, the standard AI Studio free tier is enough.
 
 ---
@@ -39,7 +39,7 @@ When using `/config_model`, try these free IDs:
 ## 3. Best Setup for the Bot
 For the best experience without spending a cent:
 1.  Set your **Gemini Key** (AI Studio).
-2.  Use the default **Gemini 1.5 Flash** (it's the bot's default).
+2.  Use the default **Gemini 3.1 Flash-Lite** (it's the bot's default).
 3.  Upload a **Markdown Profile** using `/config_profile` so the AI knows what you like.
 
 ---

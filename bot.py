@@ -119,6 +119,25 @@ def fetch_top_opportunities_sync(user_id=None):
     save_opportunity(scored)
     return sorted(scored, key=lambda x: x["score"], reverse=True)[:5], scorer.generate_daily_strategy(scored[:5])
 
+@client.tree.command(name="guide", description="🔑 Complete setup guide for AI Keys & Models")
+async def guide_cmd(interaction: discord.Interaction):
+    embed = discord.Embed(title="🔑 AI Configuration Guide", color=0x9b59b6)
+    embed.add_field(name="1. Google Gemini (Preferred)", value=(
+        "• Go to [Google AI Studio](https://aistudio.google.com/)\n"
+        "• Get your API Key (Free tier is enough)\n"
+        "• Use `/config_gemini` to save it"
+    ), inline=False)
+    embed.add_field(name="2. Default Model", value=(
+        "• The bot uses `gemini-3.1-flash-lite-preview` by default.\n"
+        "• It is the fastest and most efficient for analysis."
+    ), inline=False)
+    embed.add_field(name="3. Fallback (OpenRouter)", value=(
+        "• Get a key at [OpenRouter.ai](https://openrouter.ai/)\n"
+        "• Use `/config_openrouter` to save it"
+    ), inline=False)
+    embed.set_footer(text="Use /config_profile to personalize your rankings!")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
 @client.tree.command(name="opportunities", description="Top 5 personalized matches using your AI profile")
 async def opportunities_cmd(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
